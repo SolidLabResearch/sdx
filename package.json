@@ -1,0 +1,43 @@
+{
+  "name": "@solidlab/sdx",
+  "version": "0.0.0",
+  "description": "Solid Development Experience toolkit",
+  "main": "./dist/index.js",
+  "bin": {
+    "sdx": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node dist/index.js --",
+    "build": "tsc -p .",
+    "local": "sudo npm i -g && sdx",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "keywords": [
+    "solid",
+    "solidlab",
+    "sdk",
+    "sdx"
+  ],
+  "author": "thomas.dupont@ugent.be",
+  "repository": {
+    "url": "https://github.com/SolidLabResearch/sdx.git",
+    "type": "git"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/clear": "^0.1.2",
+    "@types/figlet": "^1.5.5",
+    "@types/node": "^18.11.11",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "chalk": "^5.1.2",
+    "clear": "^0.1.0",
+    "commander": "^9.4.1",
+    "figlet": "^1.5.2"
+  }
+}
