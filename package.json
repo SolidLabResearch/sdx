@@ -8,10 +8,10 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node dist/index.js --",
+    "start": "npx sdx",
+    "dev": "npx nodemon --exec \"npm run buildInstall\"",
     "build": "tsc -p .",
-    "local": "sudo npm i -g && sdx",
-    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+    "buildInstall": "npm run build && npm i -g",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
@@ -27,8 +27,6 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@types/clear": "^0.1.2",
-    "@types/figlet": "^1.5.5",
     "@types/node": "^18.11.11",
     "nodemon": "^2.0.20",
     "ts-node": "^10.9.1",
@@ -36,8 +34,9 @@
   },
   "dependencies": {
     "chalk": "^5.1.2",
-    "clear": "^0.1.0",
-    "commander": "^9.4.1",
-    "figlet": "^1.5.2"
+    "commander": "^9.4.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
