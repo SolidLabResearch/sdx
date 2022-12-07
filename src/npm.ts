@@ -1,6 +1,7 @@
 import { NpmDownloadsPointResult, NpmSearchResult } from "./types.js";
+import { noResults } from "./util.js";
 
-const scope: 'solid' | 'solidlab' = 'solid';
+export const SCOPE: 'solid' | 'solidlab' = 'solid';
 
 export class Npm {
     readonly registryUrl = 'https://registry.npmjs.org';
@@ -14,14 +15,13 @@ export class Npm {
      */
     async search(type: string): Promise<void> {
         const path = [this.registryUrl, '-/v1/search'].join('/');
-        const url = `${path}?text=scope:${scope} ${type}&quality=0.7&popularity=1.0&maintenance=0`;
+        const url = `${path}?text=scope:${SCOPE} ${type}&quality=0.7&popularity=1.0&maintenance=0`;
         const json: NpmSearchResult = await (await fetch(url)).json() as NpmSearchResult;
         const packages = json.objects.map(obj => obj.package);
         
         // No results: stop here
         if (packages.length === 0) {
-            console.log('No types found. Maybe try broadening your search?');
-            console.log();
+            noResults('Maybe try broadening your search?');
             return;
         }
 
@@ -29,6 +29,19 @@ export class Npm {
         const results = packages.map(p => ({ name: p.name, version: p.version, description: this.trim(p.description), downloads: downloads[p.name] }))
         console.table(results);
     }
+
+    async installType(type: string) {
+
+    }
+
+    async unInstallType(type: string) {
+
+    }
+
+    async upgradeType(type: string, options: any) {
+
+    }
+
 
     /**
      * Fetch last weeks downloads number for a list of packages.
