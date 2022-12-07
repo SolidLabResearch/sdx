@@ -29,7 +29,7 @@ export interface NpmUser {
 
 export interface NpmScore {
     final: number;
-    detail:  {
+    detail: {
         quality: number;
         popularity: number;
         maintenance: number;
@@ -42,3 +42,12 @@ export interface NpmDownloadsPointResult {
     end: string;
     package: string;
 }
+
+export interface ProgramOptions {
+    test: boolean;
+}
+
+export enum Scope {
+    TEST = 'solidlab-types',
+    PRODUCTION = 'solid-types'
+} 

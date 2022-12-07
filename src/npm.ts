@@ -1,7 +1,5 @@
-import { NpmDownloadsPointResult, NpmSearchResult } from "./types.js";
+import { NpmSearchResult, ProgramOptions, Scope } from "./types.js";
 import { noResults } from "./util.js";
-
-export const SCOPE: 'solid' | 'solidlab' = 'solid';
 
 export class Npm {
     readonly registryUrl = 'https://registry.npmjs.org';
@@ -13,9 +11,11 @@ export class Npm {
      * Search for a type on NPM under the configured scope (@solid or @solidlab normally)
      * @param type Name of the type
      */
-    async search(type: string): Promise<void> {
+    async search(type: string, options: ProgramOptions): Promise<void> {
+        const scope = options.test ? Scope.TEST : Scope.PRODUCTION;
         const path = [this.registryUrl, '-/v1/search'].join('/');
-        const url = `${path}?text=scope:${SCOPE} ${type}&quality=0.7&popularity=1.0&maintenance=0`;
+        const url = `${path}?text=scope:${scope} ${type}&quality=0.7&popularity=1.0&maintenance=0`;
+        console.log(url);
         const json: NpmSearchResult = await (await fetch(url)).json() as NpmSearchResult;
         const packages = json.objects.map(obj => obj.package);
         

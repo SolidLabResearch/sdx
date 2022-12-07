@@ -18,17 +18,18 @@ const npm = new Npm();
 program
     .version('0.0.0')
     .description(chalk.hex('#7C4DFF')('Solid Development eXperience toolkit'))
+    .option('-t, --test', 'use @solidlab-types scope instead of @solid-types', false)
 
 // init
 program.command('init')
     .description('initialize a new SDX project')
-    .action((type, options) => init.initProject());
+    .action((type, options) => init.initProject(options));
 
 // search
 program.command('search')
     .description('search for a type')
     .argument('<type>', 'type to search for')
-    .action((type, options) => npm.search(type));
+    .action((type, options) => npm.search(type, mergeOpts(options)));
 
 // type
 const typeCommand = program.command('type').alias('types')
@@ -36,7 +37,7 @@ const typeCommand = program.command('type').alias('types')
 // type list
 typeCommand.command('list')
     .description('list all installed types')
-    .action((type, options) => local.listTypes())
+    .action((type, options) => local.listTypes(mergeOpts(options)))
 // type install
 typeCommand.command('install')
     .description('install a type (exact name match required)')
@@ -48,8 +49,13 @@ typeCommand.command('uninstall')
 // type upgrade
 typeCommand.command('upgrade')
     .description('upgrade a type (within semantic version range)')
-    .argument('--force, -f', 'ignore semantic range and upgrade to latest available')
+    .option('-f, --force', 'ignore semantic range and upgrade to latest available')
     .action((type, options) => npm.upgradeType(type, options))
 
 
-program.parse();
+program.parse(process.argv);
+
+
+function mergeOpts(options: any) {
+    return { ...program.opts(), ...options };
+}
