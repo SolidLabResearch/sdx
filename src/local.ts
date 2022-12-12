@@ -7,10 +7,9 @@ const require = createRequire(import.meta.url);
 export class Local {
 
     listTypes(options: ProgramOptions): any {
-        const scope = options.test ? Scope.TEST : Scope.PRODUCTION;
         const dependencies: Record<string, string> = require("../package.json").dependencies;
         const results = Object.entries(dependencies)
-            .filter(dep => dep[0].startsWith(`@${scope}/`))
+            .filter(dep => dep[0].startsWith(`@solid-types/`))
             .map(dep => ({ name: dep[0], version: dep[1] }));
         if (results.length === 0) {
             noResults();

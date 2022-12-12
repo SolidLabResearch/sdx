@@ -2,34 +2,35 @@
 
 import chalk from "chalk";
 import { Command } from "commander";
-import { Initializer } from "./Initializer.js";
+import { ProjectBuilder } from "./project-builder.js";
 import { Local } from "./local.js";
-import { Npm } from "./npm.js";
+import { SOLID_PURPLE } from "./util.js";
+import { LIB_VERSION } from './version.js';
 
 // Remove warnings
 process.removeAllListeners('warning');
 
 const program = new Command();
-const init = new Initializer();
+const projectBuilder = new ProjectBuilder();
 const local = new Local();
-const npm = new Npm();
 
 // Main program
 program
-    .version('0.0.0')
-    .description(chalk.hex('#7C4DFF')('Solid Development eXperience toolkit'))
-    .option('-t, --test', 'use @solidlab-types scope instead of @solid-types', false)
+    .version(LIB_VERSION)
+    .description(chalk.hex(SOLID_PURPLE)('Solid Development eXperience toolkit'));
+
 
 // init
 program.command('init')
     .description('initialize a new SDX project')
-    .action((type, options) => init.initProject(options));
+    .option('-f, --force', 'Overwrite any package.json that might be present.', false)
+    .action((options) => projectBuilder.initProject(options));
 
 // search
 program.command('search')
     .description('search for a type')
     .argument('<type>', 'type to search for')
-    .action((type, options) => npm.search(type, mergeOpts(options)));
+    .action((type) => { });
 
 // type
 const typeCommand = program.command('type').alias('types')
@@ -41,16 +42,15 @@ typeCommand.command('list')
 // type install
 typeCommand.command('install')
     .description('install a type (exact name match required)')
-    .action((type, options) => npm.installType(type))
+    .action((type, options) => { })
 // type uninstall
 typeCommand.command('uninstall')
     .description('uninstall a type (exact name match required)')
-    .action((type, options) => npm.unInstallType(type))
+    .action((type, options) => { })
 // type upgrade
 typeCommand.command('upgrade')
     .description('upgrade a type (within semantic version range)')
-    .option('-f, --force', 'ignore semantic range and upgrade to latest available')
-    .action((type, options) => npm.upgradeType(type, options))
+    .action((type, options) => { })
 
 
 program.parse(process.argv);

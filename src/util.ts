@@ -10,3 +10,5 @@ export function noResults(extraPhrase?: string): void {
     console.log(txt);
     console.log();
 }
+
+export const SOLID_PURPLE = '#7C4DFF';

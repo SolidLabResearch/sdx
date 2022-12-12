@@ -3,7 +3,8 @@
         "ts": "ts-node"
     },
     "ignore": [
-        "dist/**/*"
+        "dist/**/*",
+        "src/version.ts"
     ],
     "ext": "*.ts"
 }

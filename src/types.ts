@@ -44,7 +44,7 @@ export interface NpmDownloadsPointResult {
 }
 
 export interface ProgramOptions {
-    test: boolean;
+    force: boolean;
 }
 
 export enum Scope {
