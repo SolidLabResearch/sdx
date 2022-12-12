@@ -93,7 +93,7 @@ export class ProjectBuilder {
 
     private initPackageJson(skipPackageJson: boolean, inputs: any) {
         if (skipPackageJson) {
-            console.log(chalk.hex('#ff781f')('Existing package.json found, I am not touching it!'))
+            console.log(chalk.hex('#ff781f')('Existing package.json found, I am not touching it! (or use --force)'))
             return;
         }
 
