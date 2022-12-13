@@ -1,10 +1,10 @@
 import chalk from "chalk";
-import { mkdirSync, readFileSync, writeFileSync } from "fs";
-import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from "./templates.js";
-import { SOLID_PURPLE } from "./util.js";
-import prompts, { PromptObject } from 'prompts';
 import { execSync } from "child_process";
-import { ProgramOptions } from "./types.js";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
+import prompts, { PromptObject } from 'prompts';
+import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from "./templates.js";
+import { InitOptions } from "./types.js";
+import { SOLID_PURPLE } from "./util.js";
 
 const PATH_SDX_CONFIG = '.sdxconfig';
 const PATH_SOLID_MANIFEST = '.solidmanifest';
@@ -14,7 +14,7 @@ const PATH_PACKAGE_JSON = 'package.json';
 export class ProjectBuilder {
 
 
-    async initProject(options: ProgramOptions) {
+    async initProject(options: InitOptions) {
         console.log(options);
         // Gather inputs
         this.logPurple('Initializing workspace, first some questions ...');
@@ -23,7 +23,7 @@ export class ProjectBuilder {
 
         // .solidmanifest
         this.logPurple('Writing .solidmanifest ...');
-        this.initSolidManifest(inputs.projectName);
+        this.initSolidManifest(inputs);
 
         // .sdxconfig
         this.logPurple('Writing .sdxconfig ...');
@@ -42,7 +42,7 @@ export class ProjectBuilder {
     }
 
     private async promptInput(skipPackageJson: boolean) {
-        const questions = [{
+        const questions: PromptObject<string>[] = [{
             type: 'text',
             name: 'projectName',
             message: 'What is the name of your project?',
@@ -55,16 +55,22 @@ export class ProjectBuilder {
                     type: 'text',
                     name: 'description',
                     message: 'How would you describe your project in one line?',
-                } as any,
+                },
                 {
                     type: 'text',
                     name: 'author',
                     message: 'Who is the author of this project?',
-                } as any
+                },
+                {
+                    type: 'text',
+                    name: 'license',
+                    message: 'Which license do you want to use?',
+                    initial: 'ISC'
+                }
             );
         }
 
-        return prompts(questions as any);
+        return prompts(questions);
     }
 
     private initSdxConfig() {
@@ -75,10 +81,12 @@ export class ProjectBuilder {
         }
     }
 
-    private initSolidManifest(projectName: string) {
+    private initSolidManifest(inputs: any) {
         try {
             const manifest = DEFAULT_SOLID_MANIFEST;
-            manifest.name = projectName;
+            manifest.name = inputs.projectName;
+            manifest.author = inputs.author;
+            manifest.license = inputs.license;
             writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4));
         } catch {
             throw new Error(`Error while writing ${PATH_SDX_CONFIG} to the filesystem.`)
@@ -104,6 +112,7 @@ export class ProjectBuilder {
             packageJson['name'] = inputs.projectName;
             packageJson['description'] = inputs.description;
             packageJson['author'] = inputs.author;
+            packageJson['license'] = inputs.license;
             packageJson['types'] = 'sdx-types/index.d.ts';
             writeFileSync(PATH_PACKAGE_JSON, JSON.stringify(packageJson, null, 4), { flag: 'w' });
         } catch {

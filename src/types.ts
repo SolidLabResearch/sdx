@@ -43,11 +43,30 @@ export interface NpmDownloadsPointResult {
     package: string;
 }
 
-export interface ProgramOptions {
+export interface InitOptions {
     force: boolean;
 }
 
-export enum Scope {
-    TEST = 'solidlab-types',
-    PRODUCTION = 'solid-types'
-} 
+export interface SdxConfig {
+    formatVersion: string;
+    repositories: SdxRepository[];
+
+}
+export interface SolidManifest {
+    formatVersion: string;
+    name: string;
+    author: string;
+    license: string;
+    types: SolidType[];
+}
+
+export interface SdxRepository {
+    name: string;
+    uri: string;
+}
+
+export interface SolidType {
+    name: string;
+    revision: string;
+    uri: string;
+}

@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { ProjectBuilder } from "./project-builder.js";
-import { Local } from "./local.js";
+import { Project } from "./project.js";
 import { SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
 
@@ -12,7 +12,7 @@ process.removeAllListeners('warning');
 
 const program = new Command();
 const projectBuilder = new ProjectBuilder();
-const local = new Local();
+const project = new Project();
 
 // Main program
 program
@@ -38,7 +38,7 @@ const typeCommand = program.command('type').alias('types')
 // type list
 typeCommand.command('list')
     .description('list all installed types')
-    .action((type, options) => local.listTypes(mergeOpts(options)))
+    .action((type, options) => project.listTypes(mergeOpts(options)))
 // type install
 typeCommand.command('install')
     .description('install a type (exact name match required)')
