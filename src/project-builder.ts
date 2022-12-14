@@ -2,14 +2,10 @@ import chalk from "chalk";
 import { execSync } from "child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import prompts, { PromptObject } from 'prompts';
+import { PATH_PACKAGE_JSON, PATH_SDX_CONFIG, PATH_SDX_TYPES_FOLDER, PATH_SOLID_MANIFEST } from "./constants.js";
 import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from "./templates.js";
 import { InitOptions } from "./types.js";
 import { SOLID_PURPLE } from "./util.js";
-
-const PATH_SDX_CONFIG = '.sdxconfig';
-const PATH_SOLID_MANIFEST = '.solidmanifest';
-const PATH_SDX_TYPES_FOLDER = 'sdx-types';
-const PATH_PACKAGE_JSON = 'package.json';
 
 export class ProjectBuilder {
 
@@ -123,7 +119,7 @@ export class ProjectBuilder {
 
     private packageJsonExists(): boolean {
         try {
-            const packageJson = readFileSync(PATH_PACKAGE_JSON);
+            readFileSync(PATH_PACKAGE_JSON);
             return true;
         } catch {
             return false;
