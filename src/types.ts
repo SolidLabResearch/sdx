@@ -70,3 +70,21 @@ export interface SolidType {
     revision: string;
     uri: string;
 }
+
+export interface Page<T> {
+    items: T[];
+    cursor?: string;
+    count?: number;
+}
+
+/**
+ * Arguments for querying the API in case of collections.
+ */
+export interface PageArgs {
+    /** Cursor pointing to the next {@link Page} */
+    cursor?: string;
+    /** Filter to filter the results */
+    filter?: string;
+    /** Limits the number of items in a page */
+    limit?: number;
+}

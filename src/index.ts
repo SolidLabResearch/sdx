@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
+// Polyfills
+import "./polyfills.js";
+
 import chalk from "chalk";
 import { Command } from "commander";
 import { ProjectBuilder } from "./project-builder.js";
 import { Project } from "./project.js";
-import { Searcher } from "./search.js";
+import { SearchService } from "./services/search.service.js";
 import { SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
 
@@ -14,7 +17,7 @@ process.removeAllListeners('warning');
 const program = new Command();
 const projectBuilder = new ProjectBuilder();
 const project = new Project();
-const searcher = new Searcher();
+const searcher = new SearchService();
 
 // Main program
 program
