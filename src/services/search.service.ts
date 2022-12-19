@@ -17,6 +17,6 @@ export class SearchService {
 
     search(type: string): void {
         this.flow!.from(this.backend!.listTypes).toOneArray().subscribe(res => console.log(res));
-        this.backend!.listTypes().subscribe(res => console.log(res));
+        this.backend!.searchType(type).subscribe(res => console.log(res), err => {});
     }
 }

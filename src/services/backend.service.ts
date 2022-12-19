@@ -1,7 +1,7 @@
-import { RxHR } from "@akanass/rx-http-request";
-import { Observable } from "rxjs";
+import { RxHR, RxHttpRequestResponse } from "@akanass/rx-http-request";
+import { Observable, OperatorFunction, throwError } from "rxjs";
 import { map } from "rxjs/operators/index.js";
-import { autoInjectable, injectable } from "tsyringe";
+import { autoInjectable, injectable, isValueProvider } from "tsyringe";
 import { Page, PageArgs, SolidType } from "../types.js";
 
 const API_ROOT = '/api';
@@ -21,11 +21,35 @@ function url(path: string, args: PageArgs = {}): string {
 
 @autoInjectable()
 export class BackendService {
+    private http = RxHR;
 
-    constructor() {}
+    constructor() { }
 
+    /**
+     * List all types.
+     */
     listTypes(args?: PageArgs): Observable<Page<SolidType>> {
-        return RxHR.get<Page<SolidType>>(url('types', args)).pipe(map(res => res.body));
+        return this.http.get<Page<SolidType>>(url('types', args))
+            .pipe(map(mapToResultOrError));
+    }
+
+    /**
+    * Search for a type.
+    * 
+    * @param query - Term to search for
+    */
+    searchType(query: string): Observable<SolidType[]> {
+        return this.http.post<SolidType[]>(url('type-search'), { body: { keyword: query }, json: true })
+            .pipe(map(mapToResultOrError));
+    }
+
+}
+
+const mapToResultOrError = (result: RxHttpRequestResponse, index: number) => {
+    if (result.response.statusCode === 200) {
+        return result.body;
+    } else {
+        throw Error(`${result.response.statusCode}: ${result.response.statusMessage}`);
     }
 
 }
