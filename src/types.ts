@@ -66,11 +66,18 @@ export interface SdxRepository {
 }
 
 export interface SolidType {
-    name: string;
-    revision: string;
-    uri: string;
+    id: string;
+    name?: string;
+    description?: string;
+    license?: string;
+    author?: string;
+    maintainers: string;
+    createdAt: string;
+    lastModifiedAt?: string;
+    homepage?: string;
+    repository?: string;
+    downloads: number;
 }
-
 export interface Page<T> {
     items: T[];
     cursor?: string;
@@ -87,4 +94,12 @@ export interface PageArgs {
     filter?: string;
     /** Limits the number of items in a page */
     limit?: number;
+
+    /** Order by a field, append with <space> desc|asc */
+    orderBy?: string;
 }
+
+/**
+ * Arguments for filtering, cursor property cannot be used.
+ */
+export type FilterArgs = Omit<PageArgs, 'cursor'>

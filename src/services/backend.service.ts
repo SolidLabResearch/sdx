@@ -29,7 +29,7 @@ export class BackendService {
      * List all types.
      */
     listTypes(args?: PageArgs): Observable<Page<SolidType>> {
-        return this.http.get<Page<SolidType>>(url('types', args))
+        return this.http.get<Page<SolidType>>(url('types', args), {json: true})
             .pipe(map(mapToResultOrError));
     }
 
@@ -41,6 +41,23 @@ export class BackendService {
     searchType(query: string): Observable<SolidType[]> {
         return this.http.post<SolidType[]>(url('type-search'), { body: { keyword: query }, json: true })
             .pipe(map(mapToResultOrError));
+    }
+
+    /**
+     * Get a type
+     * @param id - Id of the type.
+     */
+    getType(id: string): Observable<SolidType> {
+        return this.http.get<SolidType>(url(`types/${id}`), { json: true })
+            .pipe(map(mapToResultOrError));
+    }
+
+    /**
+     * Get the scheme of a type.
+     * @param id - Id of the type.
+     */
+    getTypeScheme(id: string): Observable<string> {
+        return this.http.get(url(`types/${id}/scheme`), { headers: { 'content-type': 'text/turtle' } }).pipe(map(mapToResultOrError));
     }
 
 }

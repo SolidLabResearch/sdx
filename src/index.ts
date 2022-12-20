@@ -6,18 +6,19 @@ import "./polyfills.js";
 import chalk from "chalk";
 import { Command } from "commander";
 import { ProjectBuilder } from "./project-builder.js";
-import { Project } from "./project.js";
+import { ProjectService } from "./services/project.service.js";
 import { SearchService } from "./services/search.service.js";
 import { SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
+import { container } from "tsyringe";
 
 // Remove warnings
 process.removeAllListeners('warning');
 
 const program = new Command();
 const projectBuilder = new ProjectBuilder();
-const project = new Project();
-const searcher = new SearchService();
+const project = new ProjectService();
+const search = new SearchService();
 
 // Main program
 program
@@ -35,7 +36,7 @@ program.command('init')
 program.command('search')
     .description('search for a type')
     .argument('<type>', 'type to search for')
-    .action((type) => searcher.search(type));
+    .action((type) => search.search(type));
 
 // type
 const typeCommand = program.command('type').alias('types')
@@ -43,24 +44,18 @@ const typeCommand = program.command('type').alias('types')
 // type list
 typeCommand.command('list')
     .description('list all installed types')
-    .action((type, options) => project.listTypes(mergeOpts(options)))
+    .action(() => project.listTypes())
 // type install
 typeCommand.command('install')
+    .argument('<iriOrIdx>', 'Full IRI of type or index number of previous list results.')
     .description('install a type (exact name match required)')
-    .action((type, options) => { })
+    .action((iriOrIdx) => project.installType(iriOrIdx));
 // type uninstall
 typeCommand.command('uninstall')
+    .argument('<iriOrIdx>', 'Full IRI of type or index number of previous list results.')
     .description('uninstall a type (exact name match required)')
-    .action((type, options) => { })
-// // type upgrade
-// typeCommand.command('upgrade')
-//     .description('upgrade a type (within semantic version range)')
-//     .action((type, options) => { })
+    .action((iriOrIdx) => project.unInstallType(iriOrIdx));
+
 
 
 program.parse(process.argv);
-
-
-function mergeOpts(options: any) {
-    return { ...program.opts(), ...options };
-}
