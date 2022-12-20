@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { tap } from "rxjs/operators/index.js";
+import { map, tap } from "rxjs/operators/index.js";
 import { autoInjectable, singleton } from "tsyringe";
 import { PATH_SDX_CONFIG } from "../constants.js";
 import { SdxConfig, SdxRepository, SolidType } from "../types.js";
@@ -21,9 +21,13 @@ export class SearchService {
 
     search(type: string): void {
         this.backend!.searchType(type)
-            .pipe(tap(results => this.cache!.storeListToCache(results)))
+            .pipe(
+                map(results => results.sort((a,b) => b.downloads - a.downloads)),
+                tap(results => this.cache!.storeListToCache(results))
+                )
             .subscribe(results => {
-                const tx = results.map(({ id, name, downloads }) => ({ name, id, downloads }));
+                const tx = results
+                    .map(({ id, name, downloads }) => ({ name, id, downloads }))
                 console.table(tx);
             });
     }
