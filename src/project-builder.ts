@@ -11,7 +11,6 @@ export class ProjectBuilder {
 
 
     async initProject(options: InitOptions) {
-        console.log(options);
         // Gather inputs
         this.logPurple('Initializing workspace, first some questions ...');
         const skipPackageJson = this.packageJsonExists() && !options.force;
