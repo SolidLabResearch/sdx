@@ -2,6 +2,8 @@
 
 SDX makes development of SOLID applications more enjoyable.
 
+**To read more about the conceptual ideas concerning the SDX, see the [Powerpoint slides](https://github.com/SolidLabResearch/sdx/raw/master/.assets/sdk_sdx_concept.pptx)**
+
 ## Installation
 
 ```bash
