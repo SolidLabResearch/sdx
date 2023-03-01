@@ -36,8 +36,11 @@
   },
   "dependencies": {
     "@akanass/rx-http-request": "^3.3.0",
+    "@graphql-codegen/core": "^3.1.0",
+    "@graphql-codegen/typescript": "^3.0.1",
     "chalk": "^5.1.2",
     "commander": "^9.4.1",
+    "millan": "^5.2.0",
     "prompts": "^2.4.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.6.7",

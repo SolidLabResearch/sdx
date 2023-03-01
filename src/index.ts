@@ -11,6 +11,7 @@ import { SearchService } from "./services/search.service.js";
 import { SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
 import { container } from "tsyringe";
+import { ShaclParserService } from "./services/shacl-parser.service.js";
 
 // Remove warnings
 process.removeAllListeners('warning');
@@ -19,6 +20,7 @@ const program = new Command();
 const projectBuilder = new ProjectBuilder();
 const project = new ProjectService();
 const search = new SearchService();
+const parser = new ShaclParserService();
 
 // Main program
 program
@@ -56,6 +58,9 @@ typeCommand.command('uninstall')
     .description('uninstall a type (exact name match required)')
     .action((iriOrIdx) => project.unInstallType(iriOrIdx));
 
+program.command('test')
+    .description('shacl test')
+    .action(() => parser.parseShacl('C:\\Users\\tdupont\\Downloads\\adresregister-SHACL.ttl'));
 
 
 program.parse(process.argv);
