@@ -28,6 +28,7 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "@types/n3": "^1.10.4",
     "@types/node": "^18.11.11",
     "@types/prompts": "^2.4.2",
     "nodemon": "^2.0.20",
@@ -40,7 +41,8 @@
     "@graphql-codegen/typescript": "^3.0.1",
     "chalk": "^5.1.2",
     "commander": "^9.4.1",
-    "millan": "^5.2.0",
+    "graphql": "^16.6.0",
+    "n3": "^1.16.3",
     "prompts": "^2.4.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.6.7",

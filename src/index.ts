@@ -12,6 +12,7 @@ import { SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
 import { container } from "tsyringe";
 import { ShaclParserService } from "./services/shacl-parser.service.js";
+import { TEST_SHACL_FILE_PATH } from "./constants.js";
 
 // Remove warnings
 process.removeAllListeners('warning');
@@ -60,7 +61,7 @@ typeCommand.command('uninstall')
 
 program.command('test')
     .description('shacl test')
-    .action(() => parser.parseShacl('C:\\Users\\tdupont\\Downloads\\adresregister-SHACL.ttl'));
+    .action(() => parser.parseShacl(TEST_SHACL_FILE_PATH));
 
 
 program.parse(process.argv);
