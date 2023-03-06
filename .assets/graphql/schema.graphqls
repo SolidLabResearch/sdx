@@ -1,0 +1,150 @@
+schema {
+  query: RootQueryType
+}
+
+type RootQueryType {
+  gemeenteShape(id: String): GemeenteShape
+  gemeenteShapes: [GemeenteShape]
+  plaatsShape(id: String): PlaatsShape
+  plaatsShapes: [PlaatsShape]
+  geografischeNaamShape(id: String): GeografischeNaamShape
+  geografischeNaamShapes: [GeografischeNaamShape]
+  geografischePositieShape(id: String): GeografischePositieShape
+  geografischePositieShapes: [GeografischePositieShape]
+  adreslocatorShape(id: String): AdreslocatorShape
+  adreslocatorShapes: [AdreslocatorShape]
+  locatienaamShape(id: String): LocatienaamShape
+  locatienaamShapes: [LocatienaamShape]
+  locatieaanduidingShape(id: String): LocatieaanduidingShape
+  locatieaanduidingShapes: [LocatieaanduidingShape]
+  adresvoorstellingShape(id: String): AdresvoorstellingShape
+  adresvoorstellingShapes: [AdresvoorstellingShape]
+  gemeentenaamShape(id: String): GemeentenaamShape
+  gemeentenaamShapes: [GemeentenaamShape]
+  ligplaatsShape(id: String): LigplaatsShape
+  ligplaatsShapes: [LigplaatsShape]
+  standplaatsShape(id: String): StandplaatsShape
+  standplaatsShapes: [StandplaatsShape]
+  postinfoShape(id: String): PostinfoShape
+  postinfoShapes: [PostinfoShape]
+  adresuitbreidingShape(id: String): AdresuitbreidingShape
+  adresuitbreidingShapes: [AdresuitbreidingShape]
+  straatnaamShape(id: String): StraatnaamShape
+  straatnaamShapes: [StraatnaamShape]
+  adresseerbaarObjectShape(id: String): AdresseerbaarObjectShape
+  adresseerbaarObjectShapes: [AdresseerbaarObjectShape]
+  adresShape(id: String): AdresShape
+  adresShapes: [AdresShape]
+}
+
+type GemeenteShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type PlaatsShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type GeografischeNaamShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type GeografischePositieShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type AdreslocatorShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type LocatienaamShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type LocatieaanduidingShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type AdresvoorstellingShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type GemeentenaamShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type LigplaatsShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type StandplaatsShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type PostinfoShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type AdresuitbreidingShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type StraatnaamShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type AdresseerbaarObjectShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}
+
+type AdresShape {
+  """
+  A built-in property that always returns a String identifier for the type (defaults to RDF ID).
+  """
+  id: String
+}

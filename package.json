@@ -9,7 +9,8 @@
   "type": "module",
   "scripts": {
     "start": "npx sdx",
-    "dev": "npx nodemon --exec \"npm run buildInstall\"",
+    "dev:install": "npx nodemon --exec \"npm run buildInstall\"",
+    "dev": "npx nodemon --exec \"npm run build\"",
     "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
     "build": "tsc -p .",
     "buildInstall": "npm run build && npm i -g",
