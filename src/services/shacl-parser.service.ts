@@ -1,9 +1,7 @@
 import { PathLike } from "fs";
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
-import { GraphQLArgumentConfig } from "graphql/type/definition.js";
-import { GraphQLList } from "graphql/type/definition.js";
-import { GraphQLFieldConfig } from "graphql/type/definition.js";
+import { GraphQLArgumentConfig, GraphQLFieldConfig, GraphQLList } from "graphql/type/definition.js";
 import * as Scalars from "graphql/type/scalars.js";
 import { printSchema } from "graphql/utilities/printSchema.js";
 import { Parser, Store } from 'n3';
@@ -25,6 +23,7 @@ const ID_FIELD: { 'id': GraphQLFieldConfig<any, any> } = {
 @autoInjectable()
 export class ShaclParserService {
     private parser: Parser;
+    private _context?: Store;
 
     constructor() {
         this.parser = new Parser({ format: 'turtle' });
@@ -41,9 +40,11 @@ export class ShaclParserService {
 
         // Generate Schema
         const schema = new GraphQLSchema({
-            query: this.generateEntryPoints(graphQLTypes)
-        });
+            query: this.generateEntryPoints(graphQLTypes),
+            
 
+        });
+        
         // Write schema to file
         ensureDir(dirname(TEST_GRAPHQL_FILE_PATH))
             .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, printSchema(schema), { flag: 'w' }));
@@ -75,16 +76,22 @@ export class ShaclParserService {
 
     }
 
-
     /**
      * Generates a GraphQLObjectType from a Shape
      * @param shape 
      * @returns 
      */
     private generateObjectType(shape: Shape): GraphQLObjectType {
+        const props = shape.propertyShapes.reduce((prev, prop) => ({
+            ...prev,
+            [prop.name]: { 
+                type: prop.type,
+                description: prop.description
+             } as GraphQLFieldConfig<any, any>
+        }), { ...ID_FIELD });
         return new GraphQLObjectType({
             name: shape.name,
-            fields: ID_FIELD
+            fields: props
         });
     }
 
@@ -96,11 +103,18 @@ export class ShaclParserService {
      */
     private allShapes(store: Store): Shape[] {
         return store.getSubjects(RDFS.a, SHACL.NodeShape, null).map(sub => {
-            return new Shape(store.getQuads(sub, null, null, null));
+            return new Shape(store.getQuads(sub, null, null, null), this.getContext(store));
         });
     }
 
     private decapitalize(str: string): string {
         return str.slice(0, 1).toLowerCase() + str.slice(1);
+    }
+
+    private getContext(store: Store): Store {
+        if (!this._context) {
+            this._context = new Store(store.getQuads(null, null, null, null).filter(({ subject }) => subject.termType === 'BlankNode'));
+        }
+        return this._context;
     }
 }

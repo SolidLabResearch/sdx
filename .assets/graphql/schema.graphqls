@@ -49,6 +49,12 @@ type PlaatsShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Naam van de plaats of van het gebied."""
+  plaatsnaam: String
+
+  """Geometrie van de plaats of het gebied."""
+  geometrie: undefined
 }
 
 type GeografischeNaamShape {
@@ -63,6 +69,18 @@ type GeografischePositieShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """De cartografische coöordinaten vh punt."""
+  geometrie: undefined
+
+  """Geeft aan of de positie een default positie is."""
+  default: Float
+
+  """Het type object op basis waarvan het punt werd bepaald.	"""
+  specificatie: undefined
+
+  """De manier waarop het punt werd bepaald."""
+  methode: undefined
 }
 
 type AdreslocatorShape {
@@ -70,6 +88,19 @@ type AdreslocatorShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """
+  Alfanumerieke code die de locator uniek identificeert binnen de straat, administratieve eenheid etc.
+  """
+  aanduiding: undefined
+
+  """
+  Naam of omschrijving vh het geografisch object dat de locator aanduidt.
+  """
+  naam: undefined
+
+  """Het niveau waarnaar de locator verwijst."""
+  niveau: undefined
 }
 
 type LocatienaamShape {
@@ -77,6 +108,12 @@ type LocatienaamShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Naam vh geografisch object."""
+  naam: String
+
+  """Aard vh geografisch object."""
+  type: undefined
 }
 
 type LocatieaanduidingShape {
@@ -84,6 +121,14 @@ type LocatieaanduidingShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """
+  Alfanumerieke code waarmee het identificerend deel van een adreslocator wordt aangeduid.
+  """
+  aanduiding: String
+
+  """Aard vd locatieaanduiding."""
+  type: undefined
 }
 
 type AdresvoorstellingShape {
@@ -91,6 +136,67 @@ type AdresvoorstellingShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Adres waarvan de adresvoorstelling is afgeleid."""
+  verwijstNaar: undefined
+
+  """Het complete adres in één string, al dan niet geformatteerd."""
+  volledigAdres: String
+
+  """Postbusnummer in een postkantoor."""
+  postbus: String
+
+  """Straatnaam vh adres."""
+  straatnaam: String
+
+  """
+  Alfanumerieke code die de adreslocator uniek identificeert binnen de straat, administratieve eenheid etc.
+  """
+  locatieaanduiding: String
+
+  """
+  Alfanumerieke code officieel toegekend aan gebouweenheden, ligplaatsen, standplaatsen of percelen.
+  """
+  huisnummer: String
+
+  """
+  Officieel toegekende alfanumerieke code die wordt toegevoegd aan het huisnummer om meerdere gebouweenheden, standplaatsen, ligplaatsen of percelen te onderscheiden die eenzelfde huisnummer hebben.
+  """
+  busnummer: String
+
+  """
+  Naam of omschrijving vh het geografisch object dat de adreslocator aanduidt.
+  """
+  locatienaam: String
+
+  """
+  Naam ve geografisch gebied of plaats die een aantal adresseerbare objecten groepeert om deze te adresseren zonder dat het gebied of de plaats een administratieve eenheid is
+  """
+  adresgebied: String
+
+  """
+  Naam waarmee het geografisch gebied dat adressen voor postale doeleinden groepeert wordt aangeduid.
+  """
+  postnaam: String
+
+  """Gemeentenaam vh adres."""
+  gemeentenaam: String
+
+  """
+  De regio vh adres, doorgaans een provincie of deelstaat of gelijkaardig gebied dat typisch meerdere plaatsen omvat.
+  """
+  administratieveEenheidNiveau2: String
+
+  """Hoogste Administratieve eenheid vh adres, doorgaans een land."""
+  administratieveEenheidNiveau1: String
+
+  """Land waarin het adres gelegen is."""
+  land: String
+
+  """
+  Code waarmee het geografisch gebied dat adressen voor postale doeleinden groepeert wordt aangeduid.
+  """
+  postcode: String
 }
 
 type GemeentenaamShape {
@@ -98,6 +204,12 @@ type GemeentenaamShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Gemeente waarvan de gemeentenaam is afgeleid."""
+  isAfgeleidVan: undefined
+
+  """Naam vd gemeente."""
+  gemeentenaam: String
 }
 
 type LigplaatsShape {
@@ -119,6 +231,16 @@ type PostinfoShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """
+  Naam waarmee het geografisch gebied dat de adressen voor postale doeleinden groepeert kan worden aangeduid.
+  """
+  postnaam: String
+
+  """
+  Code waarmee het geografisch gebied dat de adressen voor postale doeleinden groepeert aanduidt.
+  """
+  postcode: String
 }
 
 type AdresuitbreidingShape {
@@ -126,6 +248,15 @@ type AdresuitbreidingShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Plaats of gebied waarbinnen het Adres gelegen is."""
+  adresIsGelegenIn: undefined
+
+  """Bijkomende adreslocator."""
+  adreslocator: undefined
+
+  """Het complete adres in één string, al dan niet geformatteerd."""
+  volledigAdres: String
 }
 
 type StraatnaamShape {
@@ -133,6 +264,20 @@ type StraatnaamShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Agent die de straatnaam heeft toegekend."""
+  isToegekendDoor: undefined
+
+  """Naam vd straat."""
+  straatnaam: String
+
+  """
+  Toevoeging om dubbele straatnamen (straatnamen met dezelfde naam maar andere ligging in de gemeente en eigen adressen) van elkaar te onderscheiden.
+  """
+  homoniemToevoeging: String
+
+  """Actuele toestand van de straatnaam."""
+  status: undefined
 }
 
 type AdresseerbaarObjectShape {
@@ -147,4 +292,43 @@ type AdresShape {
   A built-in property that always returns a String identifier for the type (defaults to RDF ID).
   """
   id: String
+
+  """Adresseerbaar object waaraan het adres is toegekend."""
+  isToegekendAan: undefined
+
+  """Gemeentenaamcomponent van het adres."""
+  heeftGemeentenaam: undefined
+
+  """Postinfocomponent van het adres."""
+  heeftPostinfo: undefined
+
+  """Verwijzing naar een adresuitbreiding. """
+  isVerrijktMet: undefined
+
+  """Straatnaamcomponent van het adres."""
+  heeftStraatnaam: undefined
+
+  """Agent die het adres heeft toegekend."""
+  isToegekendDoor: undefined
+
+  """
+  Alfanumerieke code officieel toegekend aan gebouweenheden, ligplaatsen, standplaatsen of percelen.
+  """
+  huisnummer: String
+
+  """
+  Officieel toegekende alfanumerieke code die wordt toegevoegd aan het huisnummer om meerdere gebouweenheden, standplaatsen, ligplaatsen of percelen te onderscheiden die eenzelfde huisnummer hebben.
+  """
+  busnummer: String
+
+  """
+  Positie van een karakeristiek punt dat de positie van het adres vertegenwoordigt volgens een bepaalde specificatie en inclusief informatie over de herkomst van de positie.
+  """
+  positie: undefined
+
+  """Geeft aan of het adres officieel door de adresbeheerder is toegekend."""
+  officieelToegekend: Float
+
+  """Actuele toestand van het adres."""
+  status: undefined
 }
