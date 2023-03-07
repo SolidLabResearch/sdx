@@ -8,6 +8,7 @@ import { Parser, Store } from 'n3';
 import { dirname } from "path";
 import { autoInjectable, singleton } from "tsyringe";
 import { TEST_GRAPHQL_FILE_PATH } from "../constants.js";
+import { Context } from "../lib/context.js";
 import { Shape } from "../lib/shape.js";
 import { RDFS, SHACL } from "../lib/vocab.js";
 import { ensureDir } from "../util.js";
@@ -23,28 +24,44 @@ const ID_FIELD: { 'id': GraphQLFieldConfig<any, any> } = {
 @autoInjectable()
 export class ShaclParserService {
     private parser: Parser;
-    private _context?: Store;
+    private context?: Context;
 
     constructor() {
         this.parser = new Parser({ format: 'turtle' });
     }
 
     async parseShacl(path: PathLike): Promise<void> {
+        // Read ttl
+
+        // Create static Shapes
+            // Create static PropertyShapes
+        
+        // Construct schema
+            // Create GraphQLObjectTypes
+
+            // Create entryPoints
+
+            // Create
+
+
+
+
         const quads = this.parser.parse((await readFile(path)).toString());
-        const store = new Store(quads);
+        this.context = new Context(quads);
+
         // Parse to proprietary Shape format
-        const shapes = this.allShapes(store);
+        const shapes = this.allShapes();
 
         // Parse shapes to GraphQLTypes
-        const graphQLTypes = shapes.map(shape => this.generateObjectType(shape))
+        this.context.setGraphQLTypes(shapes.map(shape => this.generateObjectType(shape)));
 
         // Generate Schema
         const schema = new GraphQLSchema({
-            query: this.generateEntryPoints(graphQLTypes),
-            
+            query: this.generateEntryPoints(this.context.getGraphQLTypes()),
+
 
         });
-        
+
         // Write schema to file
         ensureDir(dirname(TEST_GRAPHQL_FILE_PATH))
             .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, printSchema(schema), { flag: 'w' }));
@@ -84,10 +101,10 @@ export class ShaclParserService {
     private generateObjectType(shape: Shape): GraphQLObjectType {
         const props = shape.propertyShapes.reduce((prev, prop) => ({
             ...prev,
-            [prop.name]: { 
+            [prop.name]: {
                 type: prop.type,
                 description: prop.description
-             } as GraphQLFieldConfig<any, any>
+            } as GraphQLFieldConfig<any, any>
         }), { ...ID_FIELD });
         return new GraphQLObjectType({
             name: shape.name,
@@ -101,20 +118,13 @@ export class ShaclParserService {
      * @param store 
      * @returns 
      */
-    private allShapes(store: Store): Shape[] {
-        return store.getSubjects(RDFS.a, SHACL.NodeShape, null).map(sub => {
-            return new Shape(store.getQuads(sub, null, null, null), this.getContext(store));
-        });
+    private allShapes(): Shape[] {
+        return this.context!.getShapeStore()
+            .getQuads(null, null, null, null)
+            .map(({ subject }) => new Shape(this.context!.getStore().getQuads(subject, null, null, null), this.context!));
     }
 
     private decapitalize(str: string): string {
         return str.slice(0, 1).toLowerCase() + str.slice(1);
-    }
-
-    private getContext(store: Store): Store {
-        if (!this._context) {
-            this._context = new Store(store.getQuads(null, null, null, null).filter(({ subject }) => subject.termType === 'BlankNode'));
-        }
-        return this._context;
     }
 }

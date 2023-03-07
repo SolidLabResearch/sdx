@@ -9,6 +9,7 @@ export const RDFS = {
 }
 
 export const SHACL = {
+    class: namedNode('http://www.w3.org/ns/shacl#class'),
     datatype: namedNode('http://www.w3.org/ns/shacl#datatype'),
     description: namedNode('http://www.w3.org/ns/shacl#description'),
     name: namedNode('http://www.w3.org/ns/shacl#name'),
@@ -16,6 +17,7 @@ export const SHACL = {
     path: namedNode('http://www.w3.org/ns/shacl#path'),
     PropertyShape: namedNode('http://www.w3.org/ns/shacl#PropertyShape'),
     property: namedNode('http://www.w3.org/ns/shacl#property'),
+    targetClass: namedNode('http://www.w3.org/ns/shacl#targetClass'),
 }
 
 export const XSD = {

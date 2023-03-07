@@ -1,4 +1,5 @@
-import { BlankNode, Quad, Store } from "n3";
+import { Quad, Store } from "n3";
+import { Context } from "./context.js";
 import { PropertyShape } from "./property-shape.js";
 import { RDFS, SHACL } from './vocab.js';
 
@@ -12,7 +13,9 @@ export class Shape {
      * @param quads The quads that make up the Shape
      * @param context Any toplevel quads that have a BlankNode subject
      */
-    constructor(public quads: Quad[], private context: Store) {
+    constructor(public quads: Quad[], context: Context) {
+        // console.log(quads);
+        // console.log(context)
         const store = new Store(quads);
         this.name = this.parseName(store);
         this.propertyShapes = this.parsePropertyShapes(store, context);
@@ -29,12 +32,13 @@ export class Shape {
         }
     }
 
-    private parsePropertyShapes(store: Store, context: Store): PropertyShape[] {
+    private parsePropertyShapes(store: Store, context: Context): PropertyShape[] {
         // Get all quads with a sh:property predicate
         return store.getQuads(null, SHACL.property, null, null)
             .map(({object: quadObject}) => {
                 if (quadObject.termType === 'BlankNode') {
-                    return new PropertyShape(context.getQuads(quadObject, null, null, null));
+                    const propertyQuads = context.getBlankNodeStore().getQuads(quadObject, null, null, null);
+                    return new PropertyShape(propertyQuads, context);
                 }
             })
             .filter(item => item !== undefined) as PropertyShape[];
