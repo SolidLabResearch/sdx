@@ -1,10 +1,12 @@
-import { Quad, Store } from "n3";
+import { NamedNode, Quad, Store } from "n3";
 import { Context } from "./context.js";
 import { PropertyShape } from "./property-shape.js";
+import { parseNameFromUri } from "./util.js";
 import { RDFS, SHACL } from './vocab.js';
 
 export class Shape {
     public name: string;
+    public targetClass?: string;
     public propertyShapes: PropertyShape[];
 
 
@@ -18,6 +20,7 @@ export class Shape {
         // console.log(context)
         const store = new Store(quads);
         this.name = this.parseName(store);
+        this.targetClass = this.parseObject(store, SHACL.targetClass);
         this.propertyShapes = this.parsePropertyShapes(store, context);
 
     }
@@ -29,6 +32,17 @@ export class Shape {
         }
         else {
             throw new Error('There must be just one Subject for \'a\' NodeShape.')
+        }
+    }
+
+    private parseObject(store: Store, predicate: NamedNode, throwError = false): string | undefined {
+        const obj = store.getObjects(null, predicate, null);
+        if (obj && obj.length === 1) {
+            return obj.at(0)!.value;
+        } else if (throwError) {
+            throw new Error(`Could not find a ${predicate.id} for Shape.`)
+        } else {
+            return undefined;
         }
     }
 

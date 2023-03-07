@@ -1,5 +1,5 @@
-import { GraphQLObjectType, GraphQLType } from "graphql";
-import { Quad, Store, DataFactory } from "n3";
+import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLType } from "graphql";
+import { Quad, Store, DataFactory, NamedNode } from "n3";
 import { RDFS, SHACL, XSD } from "./vocab.js";
 import * as Scalars from "graphql/type/scalars.js";
 import { Context } from "./context.js";
@@ -10,48 +10,46 @@ export class PropertyShape {
     public name: string;
     public description?: string;
     public type?: GraphQLType;
+    public path?: string;
+    public minCount?: number;
+    public maxCount?: number;
+    private className?: string;
 
-    constructor(public quads: Quad[], context: Context) {
+    constructor(public quads: Quad[], private context: Context) {
         const store = new Store(quads);
-        this.name = this.parseName(store);
-        this.description = this.parseDescription(store);
-        this.type = this.parseType(store) ?? this.parseClass(store, context);
+        this.name = this.parseObject(store, SHACL.name, true)!;
+        this.description = this.parseObject(store, SHACL.description);
+        this.type = this.parseType(store);
+        this.path = this.parseObject(store, SHACL.path);
+        const minCount = this.parseObject(store, SHACL.minCount);
+        this.minCount = minCount ? parseInt(minCount) : undefined;
+        const maxCount = this.parseObject(store, SHACL.maxCount);
+        this.maxCount = maxCount ? parseInt(maxCount) : undefined;
+        this.className = this.parseClass(store);
     }
 
-    private parseName(store: Store): string {
-        const obj = store.getObjects(null, SHACL.name, null);
+    private parseObject(store: Store, predicate: NamedNode, throwError = false): string | undefined {
+        const obj = store.getObjects(null, predicate, null);
         if (obj && obj.length === 1) {
             return obj.at(0)!.value;
+        } else if (throwError) {
+            throw new Error(`Could not find a ${predicate.id} for PropertyShape.`)
         } else {
-            throw new Error('Could not find a name for PropertyShape.')
+            return undefined;
         }
-    }
-
-    private parseDescription(store: Store): string | undefined {
-        const obj = store.getObjects(null, SHACL.description, null);
-        if (obj && obj.length === 1) {
-            return obj.at(0)!.value;
-        }
-        return undefined;
     }
 
     private parseType(store: Store): GraphQLType | undefined {
-        const obj = store.getObjects(null, SHACL.datatype, null);
-        if (obj && obj.length === 1) {
-            return this.dataTypeToGraphQLType(obj.at(0)!.value);
-        }
-        return undefined;
+        const type = this.parseObject(store, SHACL.datatype);
+        return this.dataTypeToGraphQLType(type);
     }
 
-    private parseClass(store: Store, context: Context): GraphQLObjectType | undefined {
-        const obj = store.getObjects(null, SHACL.class, null);
-        if (obj && obj.length === 1) {
-            // const matchingShapeIri = this.findMatchingShapeIri(obj.at(0)!.value, context);
-            return this.findMatchingShapeType(obj.at(0)!.value, context);
-        }
+    private parseClass(store: Store): string | undefined {
+        const clazz = this.parseObject(store, SHACL.class);
+        return this.findMatchingShapeType(clazz);
     }
 
-    private dataTypeToGraphQLType(datatype: string): GraphQLType | undefined {
+    private dataTypeToGraphQLType(datatype?: string): GraphQLType | undefined {
         switch (datatype) {
             case XSD.int.value:
                 return Scalars.GraphQLInt;
@@ -71,17 +69,24 @@ export class PropertyShape {
         }
     }
 
-    private findMatchingShapeType(iriRef: string, context: Context): GraphQLObjectType | undefined {
-        const match = context.getStore().getQuads(null, SHACL.targetClass, namedNode(iriRef), null);
-        const types = context.getGraphQLTypes();
-        console.log(match)
+    private findMatchingShapeType(clazz?: string): string | undefined {
+        if (!clazz) { return undefined; }
+        const match = this.context.getStore().getQuads(null, SHACL.targetClass, namedNode(clazz), null);
         if (match && match.length === 1) {
-            const name = parseNameFromUri(match.at(0)!.subject.value);
-            console.log(name);
-            console.log(types)
-            return types.find(type => type.name === name);
-
+            return parseNameFromUri(match.at(0)!.subject.value);
         }
         return undefined;
+    }
+
+    public get class(): () => GraphQLObjectType | undefined {
+        return () => {
+            const type = this.context.getGraphQLTypes().find(type => type.name === this.className);
+            if (type) {
+                // console.log(`found existing Shape for prop ${this.name}: + ${type.name}`)
+            } else {
+                console.log(`No Shape found for property ${this.name} ==> IGNORE`)
+            }
+            return type;
+        }
     }
 }

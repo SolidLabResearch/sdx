@@ -2,6 +2,7 @@ import { Quad, Store } from "n3";
 import { Shape } from "./shape.js";
 import { RDFS, SHACL } from "./vocab.js";
 import { GraphQLObjectType, GraphQLType } from "graphql";
+import { groupBySubject } from "./util.js";
 
 export class Context {
     private _store: Store;
@@ -14,7 +15,9 @@ export class Context {
         this._blankNodeStore = new Store(this._store
             .getQuads(null, null, null, null)
             .filter(q => q.subject.termType === 'BlankNode'));
-        this._shapeStore = new Store(this._store.getQuads(null, RDFS.a, SHACL.NodeShape, null));
+        this._shapeStore = new Store(this._store
+            .getSubjects(RDFS.a, SHACL.NodeShape, null)
+            .flatMap(sub => this._store.getQuads(sub, null, null, null)));
     }
 
     /**
@@ -47,5 +50,17 @@ export class Context {
 
     getGraphQLTypes(): GraphQLObjectType[] {
         return this._graphQLTypes;
+    }
+
+    /**
+     * Retrieve all Shapes in this context
+     * @returns 
+     */
+    allShapes(): Shape[] {
+        const shapes: Shape[] = [];
+        for (const entry of groupBySubject(this._shapeStore).entries()) {
+            shapes.push(new Shape(entry[1], this));
+        }
+        return shapes;
     }
 }
