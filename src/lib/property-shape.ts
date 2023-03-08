@@ -17,7 +17,7 @@ export class PropertyShape {
 
     constructor(public quads: Quad[], private context: Context) {
         const store = new Store(quads);
-        this.name = this.parseObject(store, SHACL.name, true)!;
+        this.name = this.parseObject(store, SHACL.name) ?? parseNameFromUri(this.parseObject(store,SHACL.path)!);
         this.description = this.parseObject(store, SHACL.description);
         this.type = this.parseType(store);
         this.path = this.parseObject(store, SHACL.path);

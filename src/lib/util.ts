@@ -5,7 +5,7 @@ import { Quad, Quad_Subject, Store } from "n3";
 export function parseNameFromUri(uriString: string): string {
     const uri = new URL(uriString);
     // If the URI has a fragment, use fragment, otherwise use the last path segment
-    return uri.hash.length > 0 ? uri.hash.slice(1) : uri.pathname.slice(uri.pathname.lastIndexOf('/'));
+    return uri.hash.length > 0 ? uri.hash.slice(1) : uri.pathname.slice(uri.pathname.lastIndexOf('/')+1);
 }
 
 export function groupBySubject(store: Store): Map<Quad_Subject, Quad[]> {
@@ -26,7 +26,7 @@ export function printSchemaWithDirectives(schema: GraphQLSchema, context: Contex
         const parts = line.split(/\s/);
         if (parts[0] === 'type') {
             const typeName = parts[1];
-            console.log(typeName);
+            // console.log(typeName);
             const type = context.getGraphQLTypes().find(t => typeName === t.name);
             if (type) {
                 const directive = (type?.extensions?.directives as any)?.is;

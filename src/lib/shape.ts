@@ -27,8 +27,8 @@ export class Shape {
 
     private parseName(store: Store): string {
         const sub = store.getSubjects(RDFS.a, SHACL.NodeShape, null);
-        if (sub && sub.length === 1 && sub.at(0)!.value.indexOf('#') > -1) {
-            return sub.at(0)!.value.split('#').at(-1)!;
+        if (sub && sub.length === 1) {
+            return parseNameFromUri(sub.at(0)!.value);
         }
         else {
             throw new Error('There must be just one Subject for \'a\' NodeShape.')
