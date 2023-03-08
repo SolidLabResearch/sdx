@@ -14,11 +14,9 @@ type RootQueryType {
 }
 
 type Contact @is(class: "http://schema.org/Person") {
-  """
-  Auto-generated property that will be assigned to the `iri` of the Thing that is being queried.
-  """
-  id: ID
-  givenName: String!
-  familyName: String!
-  email: String
+  "Auto-generated property that will be assigned to the `iri` of the Thing that is being queried."
+  id: ID! @identifier
+  givenName: String! @property(iri: "http://schema.org/givenName")
+  familyName: String! @property(iri: "http://schema.org/familyName")
+  email: String @property(iri: "http://schema.org/email")
 }

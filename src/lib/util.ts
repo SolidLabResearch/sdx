@@ -1,11 +1,16 @@
 import { GraphQLSchema, printSchema } from 'graphql';
 import { Context } from "./context.js";
 import { Quad, Quad_Subject, Store } from "n3";
+import dedent from 'dedent';
+import { GraphQLDirective } from 'graphql/type/directives.js';
+import { DirectiveLocation } from 'graphql/language/directiveLocation.js';
+import { OperationTypeNode } from 'graphql/language/ast.js';
+import { GraphQLArgument, GraphQLField, GraphQLObjectType, GraphQLType, isInputType, isNonNullType, isObjectType, isOutputType } from 'graphql/type/definition.js';
 
 export function parseNameFromUri(uriString: string): string {
     const uri = new URL(uriString);
     // If the URI has a fragment, use fragment, otherwise use the last path segment
-    return uri.hash.length > 0 ? uri.hash.slice(1) : uri.pathname.slice(uri.pathname.lastIndexOf('/')+1);
+    return uri.hash.length > 0 ? uri.hash.slice(1) : uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1);
 }
 
 export function groupBySubject(store: Store): Map<Quad_Subject, Quad[]> {

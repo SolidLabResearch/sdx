@@ -8,5 +8,7 @@ export const PATH_SDX_SHACL_CACHE_FOLDER = `${PATH_DOT_SDX_FOLDER}/shacle`;
 
 
 
-export const TEST_SHACL_FILE_PATH = '.assets/shacl/test.ttl';//adresregister-SHACL.ttl';
+export const TEST_SHACL_FILE_PATH = '.assets/shacl/test.ttl';
+// export const TEST_SHACL_FILE_PATH = '.assets/shacl/adresregister-SHACL.ttl';
 export const TEST_GRAPHQL_FILE_PATH = '.assets/graphql/schema.graphqls';
+export const TARGET_GRAPHQL_FILE_PATH = '.assets/graphql/target.graphqls';

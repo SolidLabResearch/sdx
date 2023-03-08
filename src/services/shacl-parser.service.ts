@@ -3,22 +3,21 @@ import { PathLike } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { graphql, GraphQLObjectType, GraphQLSchema } from "graphql";
 import { defaultFieldResolver } from "graphql/execution/execute.js";
-import { PromiseOrValue } from "graphql/jsutils/PromiseOrValue.js";
 import { DirectiveLocation } from "graphql/language/directiveLocation.js";
 import { Source } from "graphql/language/source.js";
-import { GraphQLAbstractType, GraphQLFieldConfig, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLResolveInfo, GraphQLType } from "graphql/type/definition.js";
+import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLResolveInfo, GraphQLType } from "graphql/type/definition.js";
 import { GraphQLDirective } from "graphql/type/directives.js";
 import { isListType, isNonNullType, isScalarType } from "graphql/type/index.js";
 import * as Scalars from "graphql/type/scalars.js";
-import { Parser, Store, DataFactory, Quad } from 'n3';
+import { DataFactory, Parser, Store } from 'n3';
 import { dirname } from "path";
 import { autoInjectable, singleton } from "tsyringe";
-import { TEST_GRAPHQL_FILE_PATH } from "../constants.js";
+import { TARGET_GRAPHQL_FILE_PATH, TEST_GRAPHQL_FILE_PATH } from "../constants.js";
 import { Context } from "../lib/context.js";
 import { PropertyShape } from "../lib/property-shape.js";
+import { SchemaPrinter } from "../lib/schema-printer.js";
 import { Shape } from "../lib/shape.js";
 import { printSchemaWithDirectives } from "../lib/util.js";
-import { RDFS } from "../lib/vocab.js";
 import { ensureDir } from "../util.js";
 
 const { namedNode } = DataFactory;
@@ -26,7 +25,7 @@ const { namedNode } = DataFactory;
 const ID_FIELD: { 'id': GraphQLFieldConfig<any, any> } = {
     id: {
         description: 'Auto-generated property that will be assigned to the `iri` of the Thing that is being queried.',
-        type: Scalars.GraphQLID,
+        type: new GraphQLNonNull(Scalars.GraphQLID),
         extensions: {
             directives: {
                 'identifier': {}
@@ -60,10 +59,14 @@ export class ShaclParserService {
     private parser: Parser;
     private context?: Context;
 
-    constructor() {
+    constructor(private printer?: SchemaPrinter) {
         this.parser = new Parser({ format: 'turtle' });
     }
 
+    /**
+     * Parses a SHACL file at the given `path` to a GraphQL schema.
+     * @param path 
+     */
     async parseShacl(path: PathLike): Promise<void> {
         const quads = this.parser.parse((await readFile(path)).toString());
         this.context = new Context(quads);
@@ -78,13 +81,13 @@ export class ShaclParserService {
         const schema = new GraphQLSchema({
             query: this.generateEntryPoints(this.context.getGraphQLTypes()),
             directives: [IS_DIRECTIVE, PROPERTY_DIRECTIVE, IDENTIFIER_DIRECTIVE],
+            // types: this.context.getGraphQLTypes()
         });
-
-        // graphql({schema, source: })
 
         // Write schema to file
         ensureDir(dirname(TEST_GRAPHQL_FILE_PATH))
-            .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, printSchemaWithDirectives(schema, this.context!), { flag: 'w' }));
+            .then(_ => writeFile(TARGET_GRAPHQL_FILE_PATH, printSchemaWithDirectives(schema, this.context!), { flag: 'w' }))
+            .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, this.printer!.printSchema(schema, this.context!), { flag: 'w' }));
 
         const source = new Source('{ contact(id:"id1") { id givenName } contacts { id givenName }}')
 

@@ -1,0 +1,24 @@
+schema {
+  query: RootQueryType
+}
+
+directive @is(class: String) on OBJECT
+
+directive @property(class: String) on FIELD_DEFINITION
+
+directive @identifier on FIELD_DEFINITION
+
+type RootQueryType {
+  contact(id: String): Contact
+  contacts: [Contact]
+}
+
+type Contact @is(class: "http://schema.org/Person") {
+  """
+  Auto-generated property that will be assigned to the `iri` of the Thing that is being queried.
+  """
+  id: ID!
+  givenName: String!
+  familyName: String!
+  email: String
+}
