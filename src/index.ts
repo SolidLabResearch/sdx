@@ -8,11 +8,14 @@ import { Command } from "commander";
 import { ProjectBuilder } from "./project-builder.js";
 import { ProjectService } from "./services/project.service.js";
 import { SearchService } from "./services/search.service.js";
-import { SOLID_PURPLE } from "./util.js";
+import { ensureDir, SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
 import { container } from "tsyringe";
 import { ShaclParserService } from "./services/shacl-parser.service.js";
-import { TEST_SHACL_FILE_PATH } from "./constants.js";
+import { TARGET_GRAPHQL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
+import { SchemaPrinterService } from "./services/schema-printer.service.js";
+import { dirname } from "path";
+import { writeFile } from "fs/promises";
 
 // Remove warnings
 process.removeAllListeners('warning');
@@ -22,6 +25,7 @@ const projectBuilder = new ProjectBuilder();
 const project = new ProjectService();
 const search = new SearchService();
 const parser = new ShaclParserService();
+const printer = new SchemaPrinterService();
 
 // Main program
 program
@@ -61,7 +65,16 @@ typeCommand.command('uninstall')
 
 program.command('test')
     .description('shacl test')
-    .action(() => parser.parseShacl(TEST_SHACL_FILE_PATH));
+    .action(() => parser.parseShaclComplete(TEST_SHACL_FILE_PATH));
+
+program.command('generate')
+    .description('generate a graphql schema from the TTL')
+    .action(async () => {
+        const schema = await parser.parseSHACL(TEST_SHACL_FILE_PATH);
+           // Write schema to file
+        ensureDir(dirname(TEST_GRAPHQL_FILE_PATH))
+            .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, printer.printSchema(schema), { flag: 'w' }));
+    });
 
 
 program.parse(process.argv);

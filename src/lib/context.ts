@@ -1,39 +1,25 @@
+import { GraphQLObjectType } from "graphql";
 import { Quad, Store } from "n3";
 import { Shape } from "./shape.js";
-import { RDFS, SHACL } from "./vocab.js";
-import { GraphQLObjectType, GraphQLType } from "graphql";
 import { groupBySubject } from "./util.js";
+import { RDFS, SHACL } from "./vocab.js";
 
 export class Context {
-    private _store: Store;
-    private _shapeStore: Store;
-    private _blankNodeStore: Store;
-    private _graphQLTypes: GraphQLObjectType[] = [];
-
-    constructor(quads: Quad[]) {
-        this._store = new Store(quads);
-        this._blankNodeStore = new Store(this._store
-            .getQuads(null, null, null, null)
-            .filter(q => q.subject.termType === 'BlankNode'));
-        this._shapeStore = new Store(this._store
-            .getSubjects(RDFS.a, SHACL.NodeShape, null)
-            .flatMap(sub => this._store.getQuads(sub, null, null, null)));
-    }
+    private store: Store;
+    private shapes: Shape[];
+    private types: GraphQLObjectType[];
+    private blankNodes: Quad[];
 
     /**
-     * Store with Quads that have only quads that are `?sub a shacl:NodeSahpe`
-     * @returns 
+     * Context object for conversion from SHACL to GraphQL Schema
+     * @param quads All quads
+     * @param objectTypeConverter A function (closure) that converts a Shape into a GraphQLObjectType
      */
-    getShapeStore(): Store {
-        return this._shapeStore;
-    }
-
-    /**
-     * Store with only Quads that have subject with type BlankNode
-     * @returns 
-     */
-    getBlankNodeStore(): Store {
-        return this._blankNodeStore;
+    constructor(quads: Quad[], objectTypeConverter: (shape: Shape) => GraphQLObjectType) {
+        this.store = new Store(quads);
+        this.blankNodes = this.extractBlankNodes(quads);
+        this.shapes = this.extractShapes(this.store);
+        this.types = this.extractTypes(this.shapes, objectTypeConverter);
     }
 
     /**
@@ -41,26 +27,38 @@ export class Context {
      * @returns 
      */
     getStore(): Store {
-        return this._store;
+        return this.store;
     }
 
-    setGraphQLTypes(graphQLTypes: GraphQLObjectType[]) {
-        this._graphQLTypes = graphQLTypes;
+    getShapes(): Shape[] {
+        return this.shapes;
     }
 
-    getGraphQLTypes(): GraphQLObjectType[] {
-        return this._graphQLTypes;
+    getGraphQLObjectTypes(): GraphQLObjectType[] {
+        return this.types;
     }
 
-    /**
-     * Retrieve all Shapes in this context
-     * @returns 
-     */
-    allShapes(): Shape[] {
+    getBlankNodes(): Quad[] {
+        return this.blankNodes;
+    }
+
+    private extractShapes(store: Store): Shape[] {
         const shapes: Shape[] = [];
-        for (const entry of groupBySubject(this._shapeStore).entries()) {
+        const quads: Quad[] = store
+            .getSubjects(RDFS.a, SHACL.NodeShape, null)
+            .flatMap(sub => store.getQuads(sub, null, null, null));
+        for (const entry of groupBySubject(quads).entries()) {
             shapes.push(new Shape(entry[1], this));
         }
         return shapes;
     }
+
+    private extractTypes(shapes: Shape[], objectTypeConverter: (shape: Shape) => GraphQLObjectType): GraphQLObjectType[] {
+        return shapes.map(objectTypeConverter);
+    }
+
+    private extractBlankNodes(quads: Quad[]): Quad[] {
+        return quads.filter(quad => quad.subject.termType === 'BlankNode');
+    }
+
 }

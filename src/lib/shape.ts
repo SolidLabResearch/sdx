@@ -51,7 +51,7 @@ export class Shape {
         return store.getQuads(null, SHACL.property, null, null)
             .map(({object: quadObject}) => {
                 if (quadObject.termType === 'BlankNode') {
-                    const propertyQuads = context.getBlankNodeStore().getQuads(quadObject, null, null, null);
+                    const propertyQuads = context.getBlankNodes().filter(quad => quad.subject.equals(quadObject));
                     return new PropertyShape(propertyQuads, context);
                 }
             })

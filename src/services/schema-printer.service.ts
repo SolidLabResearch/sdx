@@ -1,0 +1,171 @@
+import { DirectiveLocation, GraphQLArgument, GraphQLDirective, GraphQLField, GraphQLObjectType, GraphQLSchema } from "graphql";
+import { isObjectType } from "graphql/type/definition.js";
+import { autoInjectable, singleton } from "tsyringe";
+
+const DOUBLE_NEWLINE = '\n\n';
+const SINGLE_NEWLINE = '\n';
+const SPACE = ' ';
+const COMMA_SPACE = ', ';
+const INDENT = `${SPACE}${SPACE}`;
+const INTERNAL_TYPE_START = '__';
+
+@singleton()
+@autoInjectable()
+export class SchemaPrinterService {
+
+    /**
+     * Outputs a complete GraphQL SDL compliant Schema as string
+     * @param schema 
+     * @returns 
+     */
+    printSchema(schema: GraphQLSchema): string {
+        return [
+            printSchemaEntry(schema),
+            printDirectiveDefinitions(schema).join(DOUBLE_NEWLINE),
+            printRootTypes(schema).join(SINGLE_NEWLINE),
+            printTypes(schema).join(DOUBLE_NEWLINE)
+        ].join(DOUBLE_NEWLINE);
+    }
+
+}
+
+/**
+ * Prints the schema node of the schema
+ * @param schema 
+ * @returns 
+ */
+function printSchemaEntry(schema: GraphQLSchema): string {
+    const query = schema.getQueryType();
+    const mutation = schema.getMutationType();
+    const lines = [];
+    lines.push('schema {');
+    if (query) { lines.push(`${INDENT}query: ${query.name}`) }
+    if (mutation) { lines.push(`${INDENT}mutation: ${mutation.name}`) }
+    lines.push('}');
+    return lines.join(SINGLE_NEWLINE);
+}
+
+/**
+ * Prints the directive definition nodes of the schema.
+ * @param schema 
+ * @returns 
+ */
+function printDirectiveDefinitions(schema: GraphQLSchema): string[] {
+    const directives = schema.getDirectives();
+    const printDirectiveDefinition = (dir: GraphQLDirective): string => {
+        let result = `directive @${dir.name}`;
+        if (dir.args && dir.args.length > 0) {
+            result += `(${dir.args.map(arg => `${arg.name}: ${arg.type.toString()}`).join(COMMA_SPACE)})`;
+        }
+        result += ` on ${dir.locations.map(loc => DirectiveLocation[loc]).join(' | ')}`;
+        return result;
+    }
+    return directives.map(directive => printDirectiveDefinition(directive));
+}
+
+/**
+ * Prints the root types of the schema
+ * @param schema 
+ * @returns 
+ */
+function printRootTypes(schema: GraphQLSchema): string[] {
+    const query = schema.getQueryType();
+    const mutation = schema.getMutationType();
+    const types: string[] = [];
+    if (query) {
+        types.push(printType(query));
+    }
+    if (mutation) {
+        types.push(printType(mutation));
+    }
+    return types;
+}
+
+/**
+ * Prints the ObjectTypes of the schema
+ * @param schema 
+ * @returns 
+ */
+function printTypes(schema: GraphQLSchema): string[] {
+    const rootTypes = [
+        schema.getQueryType()?.name,
+        schema.getMutationType()?.name,
+        schema.getSubscriptionType()?.name
+    ].filter(t => !!t);
+    const types = Object.values(schema.getTypeMap())
+        // Remove internal types
+        .filter(type => !type.name.startsWith(INTERNAL_TYPE_START))
+        // Only ObjectType
+        .filter(type => isObjectType(type))
+        // Remove RootQueryType, RootMutationType or RootSubscriptionType
+        .filter(type => !rootTypes.includes(type.name));
+    return types.map(type => printType(type as GraphQLObjectType));
+}
+
+/**
+ * Print a single ObjectType
+ * @param type 
+ * @returns 
+ */
+function printType(type: GraphQLObjectType): string {
+    const fields = Object.values(type.getFields()!);
+    let lines = [];
+    if (type.description) {
+        lines.push(`"${type.description}"`);
+    }
+    let typeLine = `type ${type.toString()}`;
+    if ('directives' in type.extensions) {
+        typeLine += printDirectives(type.extensions.directives!);
+    }
+    typeLine += ' {';
+    lines.push(typeLine);
+    lines.push(...fields.map(field => printField(field)));
+    lines.push('}')
+    return lines.join(SINGLE_NEWLINE);
+}
+
+/**
+ * Print a single Field
+ * @param field 
+ * @returns 
+ */
+function printField(field: GraphQLField<any, any>): string {
+    let result = '';
+    if (field.description) {
+        result += `${INDENT}"${field.description}"${SINGLE_NEWLINE}`;
+    }
+    result += `${INDENT}${field.name}`;
+    if (field.args && field.args.length > 0) {
+        result += printArgs(field.args);
+    }
+    result += `: ${field.type.toString()}`;
+    if ('directives' in field.extensions) {
+        result += printDirectives(field.extensions.directives!)
+    }
+    return result;
+}
+
+/**
+ * Print an Argument list
+ * @param args 
+ * @returns 
+ */
+function printArgs(args: readonly GraphQLArgument[]): string {
+    return `(${args.map(arg => `${arg.name}: ${arg.type.toString()}`).join(COMMA_SPACE)})`;
+}
+
+/**
+ * Print a Directives list
+ * @param directivesMap The map under the `extensions.directives` field
+ * @returns 
+ */
+function printDirectives(directivesMap: Record<string, any>): string {
+    return Object.entries(directivesMap).map(([name, val]) => {
+        let res = ` @${name}`;
+        const args = Object.entries(val);
+        if (args && args.length > 0) {
+            res += `(${args.map(([prop, value]) => `${prop}: "${value}"`)})`;
+        }
+        return res;
+    }).join(SPACE);
+}

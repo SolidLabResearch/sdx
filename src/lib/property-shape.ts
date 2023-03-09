@@ -1,9 +1,9 @@
-import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLType } from "graphql";
-import { Quad, Store, DataFactory, NamedNode } from "n3";
-import { RDFS, SHACL, XSD } from "./vocab.js";
+import { GraphQLObjectType, GraphQLType } from "graphql";
 import * as Scalars from "graphql/type/scalars.js";
+import { DataFactory, NamedNode, Quad, Store } from "n3";
 import { Context } from "./context.js";
 import { parseNameFromUri } from "./util.js";
+import { RDFS, SHACL, XSD } from "./vocab.js";
 const { namedNode } = DataFactory;
 
 export class PropertyShape {
@@ -80,7 +80,7 @@ export class PropertyShape {
 
     public get class(): () => GraphQLObjectType | undefined {
         return () => {
-            const type = this.context.getGraphQLTypes().find(type => type.name === this.className);
+            const type = this.context.getGraphQLObjectTypes().find(type => type.name === this.className);
             if (type) {
                 // console.log(`found existing Shape for prop ${this.name}: + ${type.name}`)
             } else {
