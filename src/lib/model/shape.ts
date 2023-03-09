@@ -1,8 +1,8 @@
 import { NamedNode, Quad, Store } from "n3";
-import { Context } from "./context.js";
+import { Context } from "../context.js";
 import { PropertyShape } from "./property-shape.js";
-import { parseNameFromUri } from "./util.js";
-import { RDFS, SHACL } from './vocab.js';
+import { parseNameFromUri } from "../util.js";
+import { RDFS, SHACL } from '../vocab.js';
 
 export class Shape {
     public name: string;

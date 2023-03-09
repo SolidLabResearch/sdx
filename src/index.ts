@@ -16,6 +16,7 @@ import { TARGET_GRAPHQL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH 
 import { SchemaPrinterService } from "./services/schema-printer.service.js";
 import { dirname } from "path";
 import { writeFile } from "fs/promises";
+import { SdxClient } from "./lib/sdx-client.js";
 
 // Remove warnings
 process.removeAllListeners('warning');
@@ -64,8 +65,12 @@ typeCommand.command('uninstall')
     .action((iriOrIdx) => project.unInstallType(iriOrIdx));
 
 program.command('test')
-    .description('shacl test')
-    .action(() => parser.parseShaclComplete(TEST_SHACL_FILE_PATH));
+    .description('client test')
+    .action(async () => {
+        const client = new SdxClient();
+        const result = JSON.stringify(await client.query('{ contact { id givenName } }'));
+        console.log(result);
+    });
 
 program.command('generate')
     .description('generate a graphql schema from the TTL')

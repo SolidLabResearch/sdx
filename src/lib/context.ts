@@ -1,6 +1,6 @@
 import { GraphQLObjectType } from "graphql";
 import { Quad, Store } from "n3";
-import { Shape } from "./shape.js";
+import { Shape } from "./model/shape.js";
 import { groupBySubject } from "./util.js";
 import { RDFS, SHACL } from "./vocab.js";
 

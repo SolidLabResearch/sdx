@@ -11,8 +11,8 @@ import * as Scalars from "graphql/type/scalars.js";
 import { DataFactory, Parser, Store } from 'n3';
 import { autoInjectable, singleton } from "tsyringe";
 import { Context } from "../lib/context.js";
-import { PropertyShape } from "../lib/property-shape.js";
-import { Shape } from "../lib/shape.js";
+import { PropertyShape } from "../lib/model/property-shape.js";
+import { Shape } from "../lib/model/shape.js";
 
 const { namedNode } = DataFactory;
 
@@ -42,7 +42,7 @@ const IS_DIRECTIVE = new GraphQLDirective({
 
 const PROPERTY_DIRECTIVE = new GraphQLDirective({
     name: 'property',
-    args: { class: { type: Scalars.GraphQLString } },
+    args: { iri: { type: Scalars.GraphQLString } },
     locations: [DirectiveLocation.FIELD_DEFINITION]
 })
 const http = RxHR;

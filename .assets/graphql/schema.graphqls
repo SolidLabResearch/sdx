@@ -4,7 +4,7 @@ schema {
 
 directive @is(class: String) on OBJECT
 
-directive @property(class: String) on FIELD_DEFINITION
+directive @property(iri: String) on FIELD_DEFINITION
 
 directive @identifier on FIELD_DEFINITION
 
