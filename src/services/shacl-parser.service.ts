@@ -9,6 +9,7 @@ import { GraphQLDirective } from "graphql/type/directives.js";
 import { isListType, isNonNullType, isScalarType } from "graphql/type/index.js";
 import * as Scalars from "graphql/type/scalars.js";
 import { DataFactory, Parser, Store } from 'n3';
+import pluralize from "pluralize";
 import { autoInjectable, singleton } from "tsyringe";
 import { Context } from "../lib/context.js";
 import { PropertyShape } from "../lib/model/property-shape.js";
@@ -60,60 +61,11 @@ export class ShaclParserService {
         const quads = this.parser.parse((await readFile(path)).toString());
         const context = new Context(quads, this.generateObjectType);
 
-        // Parse to proprietary Shape format
-        // const shapes = context.getAllShapes();
-
-        const types = context.getGraphQLObjectTypes();//shapes.map(shape => this.generateObjectType(shape));
-
-        // Parse shapes to GraphQLTypes
-        // context.setGraphQLTypes(shapes.map(shape => this.generateObjectType(shape)));
-
         // Generate Schema
-        const schema = new GraphQLSchema({
-            query: this.generateEntryPoints(types),
+        return new GraphQLSchema({
+            query: this.generateEntryPoints(context.getGraphQLObjectTypes()),
             directives: [IS_DIRECTIVE, PROPERTY_DIRECTIVE, IDENTIFIER_DIRECTIVE],
         });
-
-        return schema;
-    }
-
-    /**
-     * Parses a SHACL file at the given `path` to a GraphQL schema.
-     * @param path 
-     */
-    async parseShaclComplete(path: PathLike): Promise<void> {
-        // const quads = this.parser.parse((await readFile(path)).toString());
-        // this.context = new Context(quads);
-
-        // // Parse to proprietary Shape format
-        // const shapes = this.context.extractShapes();
-
-        // // Parse shapes to GraphQLTypes
-        // this.context.setGraphQLTypes(shapes.map(shape => this.generateObjectType(shape)));
-
-        // // Generate Schema
-        // const schema = new GraphQLSchema({
-        //     query: this.generateEntryPoints(this.context.getGraphQLTypes()),
-        //     directives: [IS_DIRECTIVE, PROPERTY_DIRECTIVE, IDENTIFIER_DIRECTIVE],
-        //     // types: this.context.getGraphQLTypes()
-        // });
-
-        // // Write schema to file
-        // ensureDir(dirname(TEST_GRAPHQL_FILE_PATH))
-        //     .then(_ => writeFile(TARGET_GRAPHQL_FILE_PATH, printSchemaWithDirectives(schema, this.context!), { flag: 'w' }))
-        //     .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, this.printer!.printSchema(schema), { flag: 'w' }));
-
-        // const source = new Source('{ contact(id:"id1") { id givenName } contacts { id givenName }}')
-
-        // graphql({
-        //     schema,
-        //     source,
-        //     fieldResolver: this.fieldResolver,
-        //     contextValue: this.context,
-        // }).then(res => {
-        //     console.log('-------------------------------')
-        //     console.log(JSON.stringify(res.data!, null, 2));
-        // });
     }
 
     /**
@@ -123,6 +75,8 @@ export class ShaclParserService {
      */
     private generateEntryPoints(types: GraphQLObjectType[]): GraphQLObjectType {
         const decapitalize = (str: string): string => str.slice(0, 1).toLowerCase() + str.slice(1);
+        
+        // const plural = (str: string): string => str.endsWith('s') || str.endsWith('x') ? `${str}es` : str.endsWith('y') ? `${str.slice(0,str.length-1)}ies`: `${str}s` ;
         const query = new GraphQLObjectType({
             name: 'RootQueryType',
             fields: types.reduce((prev, type) => ({
@@ -133,7 +87,7 @@ export class ShaclParserService {
                     args: { id: { type: Scalars.GraphQLString } }
                 },
                 // Multiple types
-                [`${decapitalize(type.name)}s`]: {
+                [pluralize(decapitalize(type.name))]: {
                     type: new GraphQLList(type)
                 }
             }), {})
@@ -188,52 +142,4 @@ export class ShaclParserService {
             },
         });
     }
-
-    private fieldResolver<TSource, TArgs>(source: TSource, args: TArgs, context: Context, info: GraphQLResolveInfo): unknown {
-        const { returnType, schema, fieldName, parentType, rootValue } = info;
-
-        console.debug(`Resolving: ${returnType.toString()} [parent: ${parentType.toString()}]`)
-        console.log('rootValue:' + rootValue)
-        if (isListType(returnType)) {
-            const type = schema.getType(returnType.ofType.toString());
-            const className = (type?.extensions!.directives! as any).is['class'] as string;
-            return [getContact(className)];
-
-        } else if (isScalarType(returnType) || (isNonNullType(returnType) && isScalarType(returnType.ofType))) {
-            if (fieldName === 'id') {
-                const type = schema.getType(parentType.toString());
-                const className = (type?.extensions!.directives! as any).is['class'] as string;
-                // console.log(className)
-                return className
-            } else {
-                // return fieldName
-                return defaultFieldResolver(source, args, context, info);
-            }
-        } else {
-            console.log('NON scalar')
-            const type = schema.getType(returnType.toString());
-            const className = (type?.extensions!.directives! as any).is['class'] as string;
-            if (type && type.name === 'Contact') {
-                console.log('IN contact')
-                const contact = getContact(className);;
-                return contact;
-            } else {
-                console.log('IN generic')
-                return defaultFieldResolver(source, args, context, info);
-            }
-        }
-    }
-
-}
-async function getContact(className: string) {
-    return http.get('http://localhost:8080/my-pod/contacts/wkerckho.ttl').toPromise().then(res => {
-        const ttl = res.body;
-        const store = new Store(new Parser().parse(ttl));
-        // const subs = store.getSubjects(RDFS.a, namedNode(className), null).flatMap(sub => store.getQuads(sub, null, null, null));
-        const id = 'myId';
-        const givenName = store.getObjects(null, namedNode('http://schema.org/givenName'), null).at(0)!.value;
-        const familyName = store.getObjects(null, namedNode('http://schema.org/familyName'), null).at(0)!.value;
-        const email = store.getObjects(null, namedNode('http://schema.org/email'), null).at(0)?.value;
-        return { id, givenName, familyName, email }
-    })
 }

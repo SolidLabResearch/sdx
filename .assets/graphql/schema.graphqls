@@ -12,7 +12,7 @@ type RootQueryType {
   contact(id: String): Contact
   contacts: [Contact]
   address(id: String): Address
-  addresss: [Address]
+  addresses: [Address]
   organization(id: String): Organization
   organizations: [Organization]
 }

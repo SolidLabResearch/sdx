@@ -36,33 +36,9 @@ export class LegacySdxClient {
             const className = getDirectives(returnType).is['class'] as string;
             source = await getGraph(location).then(quads => getSubGraph(quads, className, args as any));
         }
-
-        // ARRAY?
-        // OBJ
-        // SCALAR
-
-        // SINGLE
-        // OBJ
-        // SCALAR
-
-        // if (rootTypes.includes(parentType.name)) {
-        //     console.log('--ENTRY POINT found');
-        //     const className = getDirectives(returnType).is['class'] as string;
-        //     // const quads = getGraph(location);
-        //     console.log(className)
-        //     return getGraph(location).then(quads => getSubGraph(quads, className, args as any));
-        // } else
         // Array
         if (isListType(returnType)) {
-            console.log(`--ARRAY found`, fieldName)
-            // TODO: arrays
-
-            // printQuads(source)
-            // const type = findTypeInSchema(schema, returnType.ofType);
-            // const className = getDirectives(returnType.ofType).is['class'] as string;
-            // return [];//[getSubGraph(source, className, {})];
-
-
+            // console.log(`--ARRAY found`, fieldName)
             // Scalar
             if (isScalarType(returnType.ofType) || (isNonNullType(returnType.ofType) && isScalarType(returnType.ofType.ofType))) {
                 // Enclosing type quads
@@ -74,7 +50,7 @@ export class LegacySdxClient {
                 const directives = getDirectives(field);
 
                 if (directives.property) {
-                    console.log('--PROP DIRECTIVE found', fieldName);
+                    // console.log('--PROP DIRECTIVE found', fieldName);
                     const { iri } = directives.property;
                     return getProperties(store, id, iri);
                 }
@@ -117,12 +93,8 @@ export class LegacySdxClient {
             }
             // Object type
             else {
-                console.log('NON scalar')
-
-                // If parentType is RootQueryType
-                // Download complete graph
-
-                console.log('--TYPE found', returnType.toString());
+                // console.log('NON scalar')
+                // console.log('--TYPE found', returnType.toString());
                 // const type = schema.getType(returnType.toString())! as GraphQLOutputType;
                 const className = getDirectives(returnType).is['class'] as string;
                 console.log(className)
