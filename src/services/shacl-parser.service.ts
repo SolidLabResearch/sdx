@@ -177,7 +177,7 @@ export class ShaclParserService {
                     } as GraphQLFieldConfig<any, any>
                 }
             }
-        }, { ...ID_FIELD });
+        }, ID_FIELD);
         return new GraphQLObjectType({
             name: shape.name,
             fields: props,

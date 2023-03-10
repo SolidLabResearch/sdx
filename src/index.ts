@@ -5,18 +5,17 @@ import "./polyfills.js";
 
 import chalk from "chalk";
 import { Command } from "commander";
+import { writeFile } from "fs/promises";
+import { dirname } from "path";
+import { TEST_COMPLEX_SHACL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
+import { SdxClient } from "./lib/sdx-client.js";
 import { ProjectBuilder } from "./project-builder.js";
 import { ProjectService } from "./services/project.service.js";
+import { SchemaPrinterService } from "./services/schema-printer.service.js";
 import { SearchService } from "./services/search.service.js";
+import { ShaclParserService } from "./services/shacl-parser.service.js";
 import { ensureDir, SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
-import { container } from "tsyringe";
-import { ShaclParserService } from "./services/shacl-parser.service.js";
-import { TARGET_GRAPHQL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
-import { SchemaPrinterService } from "./services/schema-printer.service.js";
-import { dirname } from "path";
-import { writeFile } from "fs/promises";
-import { SdxClient } from "./lib/sdx-client.js";
 
 // Remove warnings
 process.removeAllListeners('warning');
@@ -68,15 +67,48 @@ program.command('test')
     .description('client test')
     .action(async () => {
         const client = new SdxClient();
-        const result = JSON.stringify(await client.query('{ contact { id givenName } }'));
+        const result = JSON.stringify(await client.query(`#graphql
+        { 
+            contacts {
+                givenName
+                familyName
+            }
+            contact(id: "http://example.org/cont/tdupont") {
+                id 
+                givenName
+                address {
+                    streetLine
+                    city
+                    }
+                email
+                worksFor {
+                    name
+                    address {
+                        streetLine
+                        city
+                    }
+                }
+            }
+            addresss {
+                streetLine
+                city
+            }
+            organizations {
+                name
+                address {
+                    streetLine
+                }
+            }
+        }
+        `), null, 2);
         console.log(result);
     });
 
 program.command('generate')
     .description('generate a graphql schema from the TTL')
     .action(async () => {
-        const schema = await parser.parseSHACL(TEST_SHACL_FILE_PATH);
-           // Write schema to file
+        const schema = await parser.parseSHACL(TEST_COMPLEX_SHACL_FILE_PATH);
+        // Write schema to file
         ensureDir(dirname(TEST_GRAPHQL_FILE_PATH))
             .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, printer.printSchema(schema), { flag: 'w' }));
     });
