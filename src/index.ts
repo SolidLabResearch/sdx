@@ -69,7 +69,7 @@ program.command('test')
         const client = new SdxClient();
         const result = JSON.stringify(await client.query(`#graphql
         { 
-            contacts {
+            contactCollection {
                 givenName
                 familyName
             }
@@ -89,11 +89,11 @@ program.command('test')
                     }
                 }
             }
-            addresss {
+            addressCollection {
                 streetLine
                 city
             }
-            organizations {
+            organizationCollection {
                 name
                 address {
                     streetLine

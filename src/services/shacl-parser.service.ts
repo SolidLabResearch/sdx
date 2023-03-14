@@ -2,14 +2,11 @@ import { RxHR } from "@akanass/rx-http-request";
 import { PathLike } from "fs";
 import { readFile } from "fs/promises";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
-import { defaultFieldResolver } from "graphql/execution/execute.js";
 import { DirectiveLocation } from "graphql/language/directiveLocation.js";
-import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLResolveInfo, GraphQLType } from "graphql/type/definition.js";
+import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLType } from "graphql/type/definition.js";
 import { GraphQLDirective } from "graphql/type/directives.js";
-import { isListType, isNonNullType, isScalarType } from "graphql/type/index.js";
 import * as Scalars from "graphql/type/scalars.js";
-import { DataFactory, Parser, Store } from 'n3';
-import pluralize from "pluralize";
+import { DataFactory, Parser } from 'n3';
 import { autoInjectable, singleton } from "tsyringe";
 import { Context } from "../lib/context.js";
 import { PropertyShape } from "../lib/model/property-shape.js";
@@ -75,8 +72,7 @@ export class ShaclParserService {
      */
     private generateEntryPoints(types: GraphQLObjectType[]): GraphQLObjectType {
         const decapitalize = (str: string): string => str.slice(0, 1).toLowerCase() + str.slice(1);
-        
-        // const plural = (str: string): string => str.endsWith('s') || str.endsWith('x') ? `${str}es` : str.endsWith('y') ? `${str.slice(0,str.length-1)}ies`: `${str}s` ;
+        const plural = (str: string): string => `${str}Collection`;
         const query = new GraphQLObjectType({
             name: 'RootQueryType',
             fields: types.reduce((prev, type) => ({
@@ -87,7 +83,7 @@ export class ShaclParserService {
                     args: { id: { type: Scalars.GraphQLString } }
                 },
                 // Multiple types
-                [pluralize(decapitalize(type.name))]: {
+                [plural(decapitalize(type.name))]: {
                     type: new GraphQLList(type)
                 }
             }), {})

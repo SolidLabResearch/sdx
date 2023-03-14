@@ -67,7 +67,7 @@ export class LegacySdxClient {
         } else {
             // Scalar
             if (isScalarType(returnType) || (isNonNullType(returnType) && isScalarType(returnType.ofType))) {
-                console.log('--SCALAR found', fieldName);
+                // console.log('--SCALAR found', fieldName);
                 // Enclosing type quads
                 const store = new Store(source || []);
                 const id = getIdentifier(store, parentType);
@@ -78,11 +78,11 @@ export class LegacySdxClient {
                 const directives = getDirectives(field);
 
                 if (directives.identifier) {
-                    console.log('--IDENT DIRECTIVE found', fieldName, id);
+                    // console.log('--IDENT DIRECTIVE found', fieldName, id);
                     return id;
                 }
                 else if (directives.property) {
-                    console.log('--PROP DIRECTIVE found', fieldName);
+                    // console.log('--PROP DIRECTIVE found', fieldName);
                     const { iri } = directives.property;
                     return getProperty(store, id, iri);
                 }
@@ -97,7 +97,6 @@ export class LegacySdxClient {
                 // console.log('--TYPE found', returnType.toString());
                 // const type = schema.getType(returnType.toString())! as GraphQLOutputType;
                 const className = getDirectives(returnType).is['class'] as string;
-                console.log(className)
                 return getSubGraph(source, className, {});
 
             }
@@ -121,7 +120,7 @@ async function getSubGraph(source: Quad[], className: string, args: Record<strin
 
     // TODO: only id filter support
     const id = args?.id;
-    if (id) { console.log('ARG ID:', id); };
+    // if (id) { console.log('ARG ID:', id); };
     // printQuads(store);
     let topQuads = store.getSubjects(RDFS.a, namedNode(className), null).flatMap(sub => store.getQuads(sub, null, null, null));
     // printQuads(topQuads, 'TOP')

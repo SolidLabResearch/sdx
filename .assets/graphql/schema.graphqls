@@ -10,11 +10,11 @@ directive @identifier on FIELD_DEFINITION
 
 type RootQueryType {
   contact(id: String): Contact
-  contacts: [Contact]
+  contactCollection: [Contact]
   address(id: String): Address
-  addresses: [Address]
+  addressCollection: [Address]
   organization(id: String): Organization
-  organizations: [Organization]
+  organizationCollection: [Organization]
 }
 
 type Contact @is(class: "http://schema.org/Person") {
