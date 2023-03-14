@@ -7,7 +7,7 @@ export class SdxClient {
     private parser = new ShaclParserService();
 
     async query<T>(query: string, documentLocation?: string): Promise<T> {
-        const schema = await this.getSchema();        
+        const schema = await this.getSchema();
         const client = new LegacySdxClient(schema, 'http://localhost:3000/complex.ttl');
         
         return client.query<T>(query, documentLocation);

@@ -29,6 +29,7 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "@graphql-tools/apollo-engine-loader": "^7.3.26",
     "@types/n3": "^1.10.4",
     "@types/node": "^18.11.11",
     "@types/prompts": "^2.4.2",
@@ -39,7 +40,7 @@
   "dependencies": {
     "@akanass/rx-http-request": "^3.3.0",
     "@graphql-codegen/core": "^3.1.0",
-    "@graphql-codegen/typescript": "^3.0.1",
+    "@graphql-codegen/typescript": "^3.0.2",
     "chalk": "^5.1.2",
     "commander": "^9.4.1",
     "graphql": "^16.6.0",

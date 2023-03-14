@@ -16,6 +16,7 @@ import { SearchService } from "./services/search.service.js";
 import { ShaclParserService } from "./services/shacl-parser.service.js";
 import { ensureDir, SOLID_PURPLE } from "./util.js";
 import { LIB_VERSION } from './version.js';
+import { TypeGeneratorService } from "./services/type-generator.service.js";
 
 // Remove warnings
 process.removeAllListeners('warning');
@@ -26,6 +27,7 @@ const project = new ProjectService();
 const search = new SearchService();
 const parser = new ShaclParserService();
 const printer = new SchemaPrinterService();
+const typeGenerator = new TypeGeneratorService();
 
 // Main program
 program
@@ -63,7 +65,7 @@ typeCommand.command('uninstall')
     .description('uninstall a type (exact name match required)')
     .action((iriOrIdx) => project.unInstallType(iriOrIdx));
 
-program.command('test')
+program.command('query')
     .description('client test')
     .action(async () => {
         const client = new SdxClient();
@@ -113,5 +115,11 @@ program.command('generate')
             .then(_ => writeFile(TEST_GRAPHQL_FILE_PATH, printer.printSchema(schema), { flag: 'w' }));
     });
 
+program.command('typings')
+    .description('generate types form the schema')
+    .action(async () => {
+        await typeGenerator.generateTypes(TEST_GRAPHQL_FILE_PATH);
+        
+    });
 
 program.parse(process.argv);
