@@ -5,9 +5,9 @@ import "./polyfills.js";
 
 import chalk from "chalk";
 import { Command } from "commander";
-import { writeFile } from "fs/promises";
+import { rm, writeFile } from "fs/promises";
 import { dirname } from "path";
-import { TEST_COMPLEX_SHACL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
+import { DEMO_POD_SCHEMAS_URI, ERROR, PATH_SDX_GRAPHQL_CACHE_FOLDER, PATH_SDX_GRAPHQL_SCHEMA, PATH_SDX_SHACL_CACHE_FOLDER, TEST_COMPLEX_SHACL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
 import { SdxClient } from "./lib/sdx-client.js";
 import { ProjectBuilder } from "./project-builder.js";
 import { ProjectService } from "./services/project.service.js";
@@ -65,6 +65,33 @@ typeCommand.command('uninstall')
     .description('uninstall a type (exact name match required)')
     .action((iriOrIdx) => project.unInstallType(iriOrIdx));
 
+const demoCommand = program.command('demo').description('bundles all actions for the demo');
+
+demoCommand.command('install')
+    .argument('<schemaName>', 'Name of the schema to install (adres, persoon, contact)')
+    .description('install a SHACL schema')
+    .action(async (schemaName) => {
+        // Install shacl schema
+        await project.demoInstallSchema(schemaName);
+
+        // Schemas were changed
+        await fireSchemasChanged();
+
+    });
+
+demoCommand.command('uninstall')
+    .argument('<schemaName>', 'Name of the schema to uninstall (adres, persoon, contact)')
+    .description('uninstall a SHACL schema')
+    .action(async (schemaName) => {
+        // Remove shacl schema
+        await project.demoRemoveSchema(schemaName);
+
+        // Schemas were changed
+        await fireSchemasChanged();
+
+    });
+
+
 program.command('query')
     .description('client test')
     .action(async () => {
@@ -119,7 +146,27 @@ program.command('typings')
     .description('generate types form the schema')
     .action(async () => {
         await typeGenerator.generateTypes(TEST_GRAPHQL_FILE_PATH);
-        
+
     });
 
 program.parse(process.argv);
+
+
+async function fireSchemasChanged(): Promise<void> {
+    try {
+        // Generate graphql schema
+        const schema = await parser.parseSHACL(PATH_SDX_SHACL_CACHE_FOLDER);
+        await ensureDir(dirname(PATH_SDX_GRAPHQL_SCHEMA))
+        await writeFile(PATH_SDX_GRAPHQL_SCHEMA, printer.printSchema(schema), { flag: 'w' });
+
+        // Generate types
+        // await typeGenerator.generateTypes(PATH_SDX_GRAPHQL_SCHEMA);
+        await typeGenerator.generateTypesAndMore(PATH_SDX_GRAPHQL_SCHEMA);
+
+    } catch (err: any) {
+        if (err === ERROR.NO_SHACL_SCHEMAS) {
+            // Remove schema
+            await rm(PATH_SDX_GRAPHQL_SCHEMA)
+        }
+    }
+}

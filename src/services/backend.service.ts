@@ -2,6 +2,7 @@ import { RxHR, RxHttpRequestResponse } from "@akanass/rx-http-request";
 import { Observable, OperatorFunction, throwError } from "rxjs";
 import { map } from "rxjs/operators/index.js";
 import { autoInjectable, injectable, isValueProvider } from "tsyringe";
+import { DEMO_POD_SCHEMAS_URI } from "../constants.js";
 import { Page, PageArgs, SolidType } from "../types.js";
 
 const API_ROOT = '/api';
@@ -60,13 +61,20 @@ export class BackendService {
         return this.http.get(url(`types/${id}/scheme`), { headers: { 'content-type': 'text/turtle' } }).pipe(map(mapToResultOrError));
     }
 
+    /**
+     * @deprecated Demo purpose only!
+     */
+    demoDownloadSchema(iri: string): Observable<string> {
+        return this.http.get(iri, { headers: { 'content-type': 'text/turtle' } }).pipe(map(mapToResultOrError));
+    }
+
 }
 
 const mapToResultOrError = (result: RxHttpRequestResponse, index: number) => {
     if (result.response.statusCode === 200) {
         return result.body;
     } else {
-        throw Error(`${result.response.statusCode}: ${result.response.statusMessage}`);
+        throw Error(`${result.response.statusCode} ${result.response.statusMessage}`);
     }
 
 }

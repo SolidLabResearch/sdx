@@ -1,13 +1,14 @@
 import { RxHR } from "@akanass/rx-http-request";
 import { PathLike } from "fs";
-import { readFile } from "fs/promises";
+import { readFile, readdir, lstat,  } from "fs/promises";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
 import { DirectiveLocation } from "graphql/language/directiveLocation.js";
 import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLType } from "graphql/type/definition.js";
 import { GraphQLDirective } from "graphql/type/directives.js";
 import * as Scalars from "graphql/type/scalars.js";
-import { DataFactory, Parser } from 'n3';
+import { DataFactory, Parser, Quad } from 'n3';
 import { autoInjectable, singleton } from "tsyringe";
+import { ERROR } from "../constants.js";
 import { Context } from "../lib/context.js";
 import { PropertyShape } from "../lib/model/property-shape.js";
 import { Shape } from "../lib/model/shape.js";
@@ -55,8 +56,26 @@ export class ShaclParserService {
     }
 
     async parseSHACL(path: PathLike): Promise<GraphQLSchema> {
-        const quads = this.parser.parse((await readFile(path)).toString());
-        const context = new Context(quads, this.generateObjectType);
+        const stat = await lstat(path);
+        if (stat.isDirectory() && (await(readdir(path))).length === 0) {
+            throw ERROR.NO_SHACL_SCHEMAS;
+        }
+
+        const parsePath = async (pathLike: PathLike): Promise<Quad[]> => {
+            const stat = await lstat(pathLike);
+            let quads: Quad[] = [];
+            if (stat.isDirectory()) {
+                for (const fileName of await readdir(pathLike)) {
+                    quads.push(... await parsePath(`${pathLike}/${fileName}`));
+                }
+            } else {
+                const source = await readFile(pathLike);
+                quads.push(... this.parser.parse(source.toString()))
+            }
+            return quads;
+        }
+
+        const context = new Context(await parsePath(path), this.generateObjectType);
 
         // Generate Schema
         return new GraphQLSchema({

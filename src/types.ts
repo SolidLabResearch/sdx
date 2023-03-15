@@ -50,8 +50,13 @@ export interface InitOptions {
 export interface SdxConfig {
     formatVersion: string;
     repositories: SdxRepository[];
-
+    options?: SdxConfigOptions;
 }
+
+export interface SdxConfigOptions {
+    
+};
+
 export interface SolidManifest {
     formatVersion: string;
     name: string;

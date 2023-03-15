@@ -1,9 +1,10 @@
+import { RxHR } from "@akanass/rx-http-request";
 import chalk from "chalk";
 import { createHash } from "crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { forkJoin } from "rxjs";
 import { autoInjectable, singleton } from "tsyringe";
-import { PATH_SDX_SHACL_CACHE_FOLDER, PATH_SOLID_MANIFEST } from "../constants.js";
+import { DEMO_POD_SCHEMAS_URI, PATH_SDX_SHACL_CACHE_FOLDER, PATH_SOLID_MANIFEST } from "../constants.js";
 import { SolidManifest, SolidType } from "../types.js";
 import { noResults, SOLID_PURPLE } from "../util.js";
 import { BackendService } from "./backend.service.js";
@@ -70,6 +71,31 @@ export class ProjectService {
 
         this.removeSchemeFromDisk(iri);
         this.removeSolidTypeToManifest(iri);
+    }
+
+    /**
+     * 
+     * @deprecated For demo purpose only
+     */
+    async demoInstallSchema(schemaName: string): Promise<void> {
+        let iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
+        try {
+            const schema = await this.backend!.demoDownloadSchema(iri).toPromise();    
+            console.log(chalk.hex(SOLID_PURPLE)(`Installing schema ${iri}`));
+            this.storeSchemeToDisk(iri, schema);
+        } catch (err: any) {
+            console.log(chalk.redBright(`Could not install schema (${err})`));
+        }
+    }
+
+    /**
+     * 
+     * @deprecated For demo purpose only
+     */
+    async demoRemoveSchema(schemaName: string): Promise<void> {
+        let iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
+        console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling schema ${iri}`));
+        this.removeSchemeFromDisk(iri);
     }
 
     private removeSchemeFromDisk(id: string) {
