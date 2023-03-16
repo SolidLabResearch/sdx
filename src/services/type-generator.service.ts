@@ -40,7 +40,7 @@ export class TypeGeneratorService {
                 [`src/sdk.generated.ts`]: {
                     plugins: ['typescript-generic-sdk'],
                     config: {
-
+                        rawRequest: true
                     }
                 }
             }
