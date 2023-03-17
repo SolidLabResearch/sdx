@@ -1,9 +1,9 @@
-import { PathLike } from "fs";
+import {PathLike } from "fs";
 import { autoInjectable, singleton } from "tsyringe";
 
 import { generate } from '@graphql-codegen/cli';
 import { codegen } from '@graphql-codegen/core';
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, appendFile } from "fs/promises";
 import { GraphQLSchema, parse } from 'graphql';
 import { PATH_SDX_GRAPHQL_SCHEMA, PATH_SDX_TYPES_FOLDER, TEST_COMPLEX_SHACL_FILE_PATH } from "../constants.js";
 import { ShaclParserService } from "./shacl-parser.service.js";
@@ -40,11 +40,13 @@ export class TypeGeneratorService {
                 [`src/sdk.generated.ts`]: {
                     plugins: ['typescript-generic-sdk'],
                     config: {
+                        noExport: true,
                         rawRequest: true
                     }
                 }
             }
         }, true);
+        await appendFile(`src/sdk.generated.ts`, `\nexport const getSolidClient = <C, E>(requester: Requester<C, E>): Sdk => getSdk<C, E>(requester);`);
     }
 
 
@@ -70,6 +72,7 @@ export class TypeGeneratorService {
                 },
                 {
                     typescriptGenericSdk: {
+                        noExport: true
                     }
                 }
             ],
