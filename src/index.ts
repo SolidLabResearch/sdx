@@ -168,5 +168,6 @@ async function fireSchemasChanged(): Promise<void> {
             // Remove schema
             await rm(PATH_SDX_GRAPHQL_SCHEMA)
         }
+        console.log(err)
     }
 }

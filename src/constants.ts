@@ -7,6 +7,7 @@ export const PATH_SDX_LIST_CACHE = `${PATH_DOT_SDX_FOLDER}/list.cache`;
 export const PATH_SDX_SHACL_CACHE_FOLDER = `${PATH_DOT_SDX_FOLDER}/shacl`;
 export const PATH_SDX_GRAPHQL_CACHE_FOLDER = `${PATH_DOT_SDX_FOLDER}/graphql`;
 export const PATH_SDX_GRAPHQL_SCHEMA = `${PATH_DOT_SDX_FOLDER}/graphql/schema.graphqls`;
+export const PATH_SRC_GRAPHQL = `src/graphql`;
 
 
 
