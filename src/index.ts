@@ -155,7 +155,7 @@ program.parse(process.argv);
 async function fireSchemasChanged(): Promise<void> {
     try {
         // Generate graphql schema
-        const schema = await parser.parseSHACL(PATH_SDX_SHACL_CACHE_FOLDER);
+        const schema = await parser.parseSHACL(PATH_SDX_SHACL_CACHE_FOLDER, ['index.json']);
         await ensureDir(dirname(PATH_SDX_GRAPHQL_SCHEMA))
         await writeFile(PATH_SDX_GRAPHQL_SCHEMA, printer.printSchema(schema), { flag: 'w' });
 

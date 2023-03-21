@@ -111,6 +111,7 @@ export class ProjectService {
                 return;
             }
         }
+        this.generateIndex();
     }
 
     private storeSchemeToDisk(id: string, scheme: string) {
@@ -119,6 +120,7 @@ export class ProjectService {
         }
         const filePath = PATH_SDX_SHACL_CACHE_FOLDER + '/' + this.hash(id);
         writeFileSync(filePath, scheme);
+        this.generateIndex();
     }
 
     private hash(msg: string): string {
@@ -145,5 +147,12 @@ export class ProjectService {
             manifest.types.splice(idx, 1);
             writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), { flag: 'w' });
         }
+    }
+
+    private generateIndex() {
+        const fileNames = readdirSync(PATH_SDX_SHACL_CACHE_FOLDER);
+        const content = { entries: fileNames.filter(name => name !== 'index.json') };
+        console.log(content);
+        writeFileSync(`${PATH_SDX_SHACL_CACHE_FOLDER}/index.json`, JSON.stringify(content, null, 4), { flag: 'w' });
     }
 }

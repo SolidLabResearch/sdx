@@ -55,18 +55,23 @@ export class ShaclParserService {
         this.parser = new Parser({ format: 'turtle' });
     }
 
-    async parseSHACL(path: PathLike): Promise<GraphQLSchema> {
+    async parseSHACL(path: PathLike, ingoreFileNames: string[] = []): Promise<GraphQLSchema> {
         const stat = await lstat(path);
         if (stat.isDirectory() && (await(readdir(path))).length === 0) {
             throw ERROR.NO_SHACL_SCHEMAS;
         }
 
         const parsePath = async (pathLike: PathLike): Promise<Quad[]> => {
+            if (ingoreFileNames.includes(pathLike.toString())) {
+                return [];
+            }
             const stat = await lstat(pathLike);
             let quads: Quad[] = [];
             if (stat.isDirectory()) {
                 for (const fileName of await readdir(pathLike)) {
-                    quads.push(... await parsePath(`${pathLike}/${fileName}`));
+                    if (!ingoreFileNames.includes(fileName)) {
+                        quads.push(... await parsePath(`${pathLike}/${fileName}`));
+                    }
                 }
             } else {
                 const source = await readFile(pathLike);
