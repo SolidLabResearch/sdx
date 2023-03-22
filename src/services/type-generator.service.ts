@@ -5,7 +5,7 @@ import { generate } from '@graphql-codegen/cli';
 import { codegen } from '@graphql-codegen/core';
 import { readFile, writeFile, appendFile, stat, readdir } from "fs/promises";
 import { GraphQLSchema, parse } from 'graphql';
-import { PATH_SDX_GRAPHQL_SCHEMA, PATH_SDX_SDK_GENERATED, PATH_SDX_TYPES_FOLDER, PATH_SRC_GRAPHQL, TEST_COMPLEX_SHACL_FILE_PATH } from "../constants.js";
+import { PATH_SDX_GENERATE_GRAPHQL_SCHEMA, PATH_SDX_GENERATE_SDK, PATH_SDX_TYPES_FOLDER, PATH_SRC_GRAPHQL_QUERIES, TEST_COMPLEX_SHACL_FILE_PATH } from "../constants.js";
 import { ShaclParserService } from "./shacl-parser.service.js";
 
 import * as typescriptPlugin from '@graphql-codegen/typescript';
@@ -44,26 +44,26 @@ export class TypeGeneratorService {
                         noExport: true
                     }
                 };
-            const generates = { [PATH_SDX_SDK_GENERATED]: configuration };
+            const generates = { [PATH_SDX_GENERATE_SDK]: configuration };
 
             // Generates
             await generate({
-                schema: PATH_SDX_GRAPHQL_SCHEMA,
+                schema: PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
                 documents,
                 generates,
             }, true);
             if (documents.length > 0) {
                 // Rename getSdk
-                await appendFile(PATH_SDX_SDK_GENERATED, `\nexport const getSolidClient = <C, E>(requester: Requester<C, E>): Sdk => getSdk<C, E>(requester);`);
+                await appendFile(PATH_SDX_GENERATE_SDK, `\nexport const getSolidClient = <C, E>(requester: Requester<C, E>): Sdk => getSdk<C, E>(requester);`);
             }
         };
 
         // Check for queries directory
         let statQuery = null;
         try {
-            statQuery = await stat(PATH_SRC_GRAPHQL);
+            statQuery = await stat(PATH_SRC_GRAPHQL_QUERIES);
         } catch { }
-        const documents = (statQuery && statQuery.isDirectory() && (await readdir(PATH_SRC_GRAPHQL)).map(fileName => `${PATH_SRC_GRAPHQL}/${fileName}`)) || [];
+        const documents = (statQuery && statQuery.isDirectory() && (await readdir(PATH_SRC_GRAPHQL_QUERIES)).map(fileName => `${PATH_SRC_GRAPHQL_QUERIES}/${fileName}`)) || [];
         console.log('docs: ', documents)
         await gen(documents);
 

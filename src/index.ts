@@ -7,7 +7,7 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { rm, writeFile } from "fs/promises";
 import { dirname } from "path";
-import { DEMO_POD_SCHEMAS_URI, ERROR, PATH_SDX_GRAPHQL_CACHE_FOLDER, PATH_SDX_GRAPHQL_SCHEMA, PATH_SDX_SHACL_CACHE_FOLDER, TEST_COMPLEX_SHACL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
+import { DEMO_POD_SCHEMAS_URI, ERROR, PATH_SDX_GENERATE_GRAPHQL_FOLDER, PATH_SDX_GENERATE_GRAPHQL_SCHEMA, PATH_SDX_GENERATE_SHACL_FOLDER, TEST_COMPLEX_SHACL_FILE_PATH, TEST_GRAPHQL_FILE_PATH, TEST_SHACL_FILE_PATH } from "./constants.js";
 import { SdxClient } from "./lib/sdx-client.js";
 import { ProjectBuilder } from "./project-builder.js";
 import { ProjectService } from "./services/project.service.js";
@@ -155,18 +155,18 @@ program.parse(process.argv);
 async function fireSchemasChanged(): Promise<void> {
     try {
         // Generate graphql schema
-        const schema = await parser.parseSHACL(PATH_SDX_SHACL_CACHE_FOLDER, ['index.json']);
-        await ensureDir(dirname(PATH_SDX_GRAPHQL_SCHEMA))
-        await writeFile(PATH_SDX_GRAPHQL_SCHEMA, printer.printSchema(schema), { flag: 'w' });
+        const schema = await parser.parseSHACL(PATH_SDX_GENERATE_SHACL_FOLDER, ['index.json']);
+        await ensureDir(dirname(PATH_SDX_GENERATE_GRAPHQL_SCHEMA))
+        await writeFile(PATH_SDX_GENERATE_GRAPHQL_SCHEMA, printer.printSchema(schema), { flag: 'w' });
 
         // Generate types
         // await typeGenerator.generateTypes(PATH_SDX_GRAPHQL_SCHEMA);
-        await typeGenerator.generateTypesAndMore(PATH_SDX_GRAPHQL_SCHEMA);
+        await typeGenerator.generateTypesAndMore(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
 
     } catch (err: any) {
         if (err === ERROR.NO_SHACL_SCHEMAS) {
             // Remove schema
-            await rm(PATH_SDX_GRAPHQL_SCHEMA)
+            await rm(PATH_SDX_GENERATE_GRAPHQL_SCHEMA)
         }
         console.log(err)
     }

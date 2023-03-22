@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { forkJoin } from "rxjs";
 import { autoInjectable, singleton } from "tsyringe";
-import { DEMO_POD_SCHEMAS_URI, PATH_SDX_SHACL_CACHE_FOLDER, PATH_SOLID_MANIFEST } from "../constants.js";
+import { DEMO_POD_SCHEMAS_URI, PATH_SDX_GENERATE_SHACL_FOLDER, PATH_SOLID_MANIFEST } from "../constants.js";
 import { SolidManifest, SolidType } from "../types.js";
 import { noResults, SOLID_PURPLE } from "../util.js";
 import { BackendService } from "./backend.service.js";
@@ -99,14 +99,14 @@ export class ProjectService {
     }
 
     private removeSchemeFromDisk(id: string) {
-        if (!existsSync(PATH_SDX_SHACL_CACHE_FOLDER)) {
+        if (!existsSync(PATH_SDX_GENERATE_SHACL_FOLDER)) {
             return;
         }
 
         const needle = this.hash(id);
-        for (const file of readdirSync(PATH_SDX_SHACL_CACHE_FOLDER)) {
+        for (const file of readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER)) {
             if (file === needle) {
-                const filePath = PATH_SDX_SHACL_CACHE_FOLDER+'/'+file;
+                const filePath = PATH_SDX_GENERATE_SHACL_FOLDER+'/'+file;
                 rmSync(filePath);
                 return;
             }
@@ -115,10 +115,10 @@ export class ProjectService {
     }
 
     private storeSchemeToDisk(id: string, scheme: string) {
-        if (!existsSync(PATH_SDX_SHACL_CACHE_FOLDER)) {
-            mkdirSync(PATH_SDX_SHACL_CACHE_FOLDER, { recursive: true });
+        if (!existsSync(PATH_SDX_GENERATE_SHACL_FOLDER)) {
+            mkdirSync(PATH_SDX_GENERATE_SHACL_FOLDER, { recursive: true });
         }
-        const filePath = PATH_SDX_SHACL_CACHE_FOLDER + '/' + this.hash(id);
+        const filePath = PATH_SDX_GENERATE_SHACL_FOLDER + '/' + this.hash(id);
         writeFileSync(filePath, scheme);
         this.generateIndex();
     }
@@ -150,9 +150,9 @@ export class ProjectService {
     }
 
     private generateIndex() {
-        const fileNames = readdirSync(PATH_SDX_SHACL_CACHE_FOLDER);
+        const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
         const content = { entries: fileNames.filter(name => name !== 'index.json') };
         console.log(content);
-        writeFileSync(`${PATH_SDX_SHACL_CACHE_FOLDER}/index.json`, JSON.stringify(content, null, 4), { flag: 'w' });
+        writeFileSync(`${PATH_SDX_GENERATE_SHACL_FOLDER}/index.json`, JSON.stringify(content, null, 4), { flag: 'w' });
     }
 }
