@@ -1,9 +1,9 @@
 import { RxHR } from "@akanass/rx-http-request";
 import { PathLike } from "fs";
-import { readFile, readdir, lstat,  } from "fs/promises";
+import { readFile, readdir, lstat, } from "fs/promises";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
 import { DirectiveLocation } from "graphql/language/directiveLocation.js";
-import { GraphQLFieldConfig, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLType } from "graphql/type/definition.js";
+import { GraphQLFieldConfig, GraphQLFieldConfigArgumentMap, GraphQLInputFieldConfig, GraphQLInputObjectType, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLType, isInputObjectType, isNonNullType, isScalarType, ThunkObjMap } from "graphql/type/definition.js";
 import { GraphQLDirective } from "graphql/type/directives.js";
 import * as Scalars from "graphql/type/scalars.js";
 import { DataFactory, Parser, Quad } from 'n3';
@@ -12,6 +12,7 @@ import { ERROR } from "../constants.js";
 import { Context } from "../lib/context.js";
 import { PropertyShape } from "../lib/model/property-shape.js";
 import { Shape } from "../lib/model/shape.js";
+import { capitalize, decapitalize, isOrContainsScalar, plural } from "../util.js";
 
 const { namedNode } = DataFactory;
 
@@ -57,7 +58,7 @@ export class ShaclParserService {
 
     async parseSHACL(path: PathLike, ingoreFileNames: string[] = []): Promise<GraphQLSchema> {
         const stat = await lstat(path);
-        if (stat.isDirectory() && (await(readdir(path))).length === 0) {
+        if (stat.isDirectory() && (await (readdir(path))).length === 0) {
             throw ERROR.NO_SHACL_SCHEMAS;
         }
 
@@ -84,7 +85,8 @@ export class ShaclParserService {
 
         // Generate Schema
         return new GraphQLSchema({
-            query: this.generateEntryPoints(context.getGraphQLObjectTypes()),
+            query: this.generateQueryEntryPoints(context.getGraphQLObjectTypes()),
+            mutation: this.generateMutationEntryPoints(context.getGraphQLObjectTypes()),
             directives: [IS_DIRECTIVE, PROPERTY_DIRECTIVE, IDENTIFIER_DIRECTIVE],
         });
     }
@@ -94,9 +96,7 @@ export class ShaclParserService {
      * @param types 
      * @returns 
      */
-    private generateEntryPoints(types: GraphQLObjectType[]): GraphQLObjectType {
-        const decapitalize = (str: string): string => str.slice(0, 1).toLowerCase() + str.slice(1);
-        const plural = (str: string): string => `${str}Collection`;
+    private generateQueryEntryPoints(types: GraphQLObjectType[]): GraphQLObjectType {
         const query = new GraphQLObjectType({
             name: 'RootQueryType',
             fields: types.reduce((prev, type) => ({
@@ -115,6 +115,58 @@ export class ShaclParserService {
 
         return query;
 
+    }
+
+    private generateMutationEntryPoints(types: GraphQLObjectType[]): GraphQLObjectType {
+        const mutation = new GraphQLObjectType({
+            name: 'RootMutationType',
+            fields: types.reduce((prev, type) => {
+                const createName = `create${capitalize(type.name)}`;
+                const mutateName = `mutate${capitalize(type.name)}`
+                return {
+                    ...prev,
+                    // create type
+                    [createName]: {
+                        type: new GraphQLNonNull(type),
+                        args: { input: { type: this.generateInputObjectType(type, `${capitalize(createName)}Input`) } }
+                    },
+                    // edit types
+                    [mutateName]: {
+                        type: this.generateMutationObjectType(type),
+                        args: { id: { type: new GraphQLNonNull(Scalars.GraphQLID) } }
+                    }
+                }
+            }, {})
+        });
+        return mutation;
+    }
+
+    private generateInputObjectType(type: GraphQLObjectType, name: string): GraphQLNonNull<GraphQLInputObjectType> {
+        return new GraphQLNonNull(new GraphQLInputObjectType({
+            name,
+            fields: Object.fromEntries(Object.entries(type.toConfig().fields).filter(entry => isInputObjectType(entry[1].type))) as any,
+            extensions: type.extensions
+        }) as GraphQLInputObjectType);
+    }
+
+    private generateMutationObjectType(type: GraphQLObjectType): GraphQLObjectType {
+        const fields = {
+            delete: {
+                type: new GraphQLNonNull(type)
+            },
+            update: {
+                type: new GraphQLNonNull(type),
+                args: {
+                    input: {
+                        type: this.generateInputObjectType(type, `Update${capitalize(type.name)}Input`)
+                    }
+                }
+            }
+        };
+        return new GraphQLObjectType({
+            name: `${capitalize(type.name)}Mutation`,
+            fields
+        });
     }
 
     /**

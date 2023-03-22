@@ -22,7 +22,7 @@ export class SchemaPrinterService {
         return [
             printSchemaEntry(schema),
             printDirectiveDefinitions(schema).join(DOUBLE_NEWLINE),
-            printRootTypes(schema).join(SINGLE_NEWLINE),
+            printRootTypes(schema).join(DOUBLE_NEWLINE),
             printTypes(schema).join(DOUBLE_NEWLINE)
         ].join(DOUBLE_NEWLINE);
     }
