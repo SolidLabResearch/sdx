@@ -123,7 +123,7 @@ function printType(type: GraphQLObjectType): string {
     lines.push(typeLine);
     lines.push(...fields.map(field => printField(field, false)));
     lines.push('}')
-    return lines.join(SINGLE_NEWLINE);
+    return fields.length > 0 ? lines.join(SINGLE_NEWLINE) : '';
 }
 
 /**
@@ -166,7 +166,7 @@ function printInput(type: GraphQLInputObjectType): string {
     lines.push(typeLine);
     lines.push(...fields.map(field => printField(field, true)));
     lines.push('}')
-    return lines.join(SINGLE_NEWLINE);
+    return fields.length > 0 ? lines.join(SINGLE_NEWLINE) : '';
 }
 
 /**

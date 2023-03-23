@@ -1,20 +1,17 @@
-import { RxHR } from "@akanass/rx-http-request";
 import { PathLike } from "fs";
-import { readFile, readdir, lstat, } from "fs/promises";
+import { lstat, readdir, readFile } from "fs/promises";
 import { GraphQLObjectType, GraphQLSchema } from "graphql";
 import { DirectiveLocation } from "graphql/language/directiveLocation.js";
-import { GraphQLField, GraphQLFieldConfig, GraphQLFieldConfigArgumentMap, GraphQLInputField, GraphQLInputFieldConfig, GraphQLInputObjectType, GraphQLInputType, GraphQLList, GraphQLNamedInputType, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLOutputType, GraphQLScalarType, GraphQLType, isInputObjectType, isListType, isNonNullType, isScalarType, ThunkObjMap } from "graphql/type/definition.js";
+import { GraphQLField, GraphQLFieldConfig, GraphQLInputField, GraphQLInputFieldConfig, GraphQLInputObjectType, GraphQLInputType, GraphQLList, GraphQLNonNull, GraphQLObjectTypeConfig, GraphQLOutputType, GraphQLType, isListType, isNonNullType, ThunkObjMap } from "graphql/type/definition.js";
 import { GraphQLDirective } from "graphql/type/directives.js";
 import * as Scalars from "graphql/type/scalars.js";
-import { DataFactory, Parser, Quad } from 'n3';
+import { Parser, Quad } from 'n3';
 import { autoInjectable, singleton } from "tsyringe";
 import { ERROR } from "../constants.js";
 import { Context } from "../lib/context.js";
 import { PropertyShape } from "../lib/model/property-shape.js";
 import { Shape } from "../lib/model/shape.js";
-import { capitalize, decapitalize, isOrContainsInputObjectType, isOrContainsObjectType, isOrContainsScalar, plural, toActualType } from "../util.js";
-
-const { namedNode } = DataFactory;
+import { capitalize, decapitalize, isOrContainsObjectType, isOrContainsScalar, plural, toActualType } from "../util.js";
 
 const ID_FIELD: { 'id': GraphQLFieldConfig<any, any> } = {
     id: {
@@ -25,6 +22,20 @@ const ID_FIELD: { 'id': GraphQLFieldConfig<any, any> } = {
                 'identifier': {}
             }
         }
+    }
+} as const;
+
+const ID_MUTATOR_FIELD: { 'id': GraphQLInputFieldConfig } = {
+    id: {
+        description: `Optional URI to use as an identifier for the new instance. One of the 'id' or 'slug' fields must be set!`,
+        type: Scalars.GraphQLID,
+    }
+} as const;
+
+const SLUG_MUTATOR_FIELD: { 'slug': GraphQLInputFieldConfig } = {
+    slug: {
+        description: `Optional slug that is combined with the context of the request to generate an identifier for the new instance. One of the 'id' or 'slug' fields must be set!`,
+        type: Scalars.GraphQLString,
     }
 } as const;
 
@@ -45,7 +56,6 @@ const PROPERTY_DIRECTIVE = new GraphQLDirective({
     args: { iri: { type: Scalars.GraphQLString } },
     locations: [DirectiveLocation.FIELD_DEFINITION]
 })
-const http = RxHR;
 
 @singleton()
 @autoInjectable()
@@ -135,7 +145,7 @@ export class ShaclParserService {
                     // create type
                     [createName]: {
                         type: new GraphQLNonNull(type),
-                        args: { input: { type: new GraphQLNonNull(this.generateInputObjectType(type, `${capitalize(createName)}Input`, context)) } }
+                        args: { input: { type: new GraphQLNonNull(this.generateInputObjectType(type, `${capitalize(createName)}Input`, 'create', context)) } }
                     },
                     // edit types
                     [mutateName]: {
@@ -154,13 +164,20 @@ export class ShaclParserService {
      * @param name 
      * @returns 
      */
-    private generateInputObjectType(type: GraphQLObjectType, name: string, context: Context): GraphQLInputObjectType {
+    private generateInputObjectType(type: GraphQLObjectType, name: string, mutationType: 'create' | 'update', context: Context): GraphQLInputObjectType {
         let inputType = context.getInputTypes().find(type => name === type.name);
         if (!inputType) {
             let fields = Object.fromEntries(Object.entries(type.getFields())
                 .filter(([_, field]) => isOrContainsScalar(field.type))
                 .filter(([_, field]) => !isIdentifier(field))
-                .map(([name, field]) => [name, toInputField(field)]));
+                .map(([name, field]) => [name, toInputField(field, mutationType)]));
+            if (mutationType === 'create') {
+                fields = {
+                    ...ID_MUTATOR_FIELD,
+                    ...SLUG_MUTATOR_FIELD,
+                    ...fields
+                }
+            }
             inputType = new GraphQLInputObjectType({
                 name,
                 fields,
@@ -171,6 +188,12 @@ export class ShaclParserService {
         return inputType;
     }
 
+    /**
+     * Generate the Mutation Type for existing Types
+     * @param type Original ObjectType
+     * @param context 
+     * @returns 
+     */
     private generateMutationObjectType(type: GraphQLObjectType, context: Context): GraphQLObjectType {
         return new GraphQLObjectType({
             name: `${capitalize(type.name)}Mutation`,
@@ -179,13 +202,19 @@ export class ShaclParserService {
         });
     }
 
+    /**
+     * Generate the fields for a MutationObjectType
+     * @param type Original ObjectType
+     * @param context 
+     * @returns 
+     */
     private generateMutationObjectTypeFields(type: GraphQLObjectType, context: Context): ThunkObjMap<GraphQLFieldConfig<any, any>> {
         let fields = {
             update: {
                 type: new GraphQLNonNull(type),
                 args: {
                     input: {
-                        type: new GraphQLNonNull(this.generateInputObjectType(type, `Update${capitalize(type.name)}Input`, context)),
+                        type: new GraphQLNonNull(this.generateInputObjectType(type, `Update${capitalize(type.name)}Input`, 'update', context)),
                     }
                 }
             },
@@ -211,6 +240,13 @@ export class ShaclParserService {
         return fields;
     }
 
+    /**
+     * Generate fields for a MutationObjectType when the field of the original has a collection return type
+     * @param field Original field
+     * @param parentType Original Object Type
+     * @param context 
+     * @returns 
+     */
     private generateMutationObjectTypeFieldsForCollection(field: GraphQLField<any, any>, parentType: GraphQLOutputType, context: Context): ThunkObjMap<GraphQLFieldConfig<any, any>> {
         const addName = `add${capitalize(field.name)}`;
         const removeName = `remove${capitalize(field.name)}`;
@@ -223,7 +259,7 @@ export class ShaclParserService {
                 type: returnType,
                 args: {
                     input: {
-                        type: new GraphQLNonNull(this.generateInputObjectType(fieldType, `Create${capitalize(fieldType.name)}Input`, context))
+                        type: new GraphQLNonNull(this.generateInputObjectType(fieldType, `Create${capitalize(fieldType.name)}Input`, 'create', context))
                     }
                 }
             },
@@ -255,6 +291,13 @@ export class ShaclParserService {
         }
     }
 
+    /**
+     * Generate fields for a MutationObjectType when the field of the original has a singular return type
+     * @param field Original field
+     * @param parentType Original Object Type
+     * @param context 
+     * @returns 
+     */
     private generateMutationObjectTypeFieldsForSingular(field: GraphQLField<any, any>, parentType: GraphQLOutputType, context: Context): ThunkObjMap<GraphQLFieldConfig<any, any>> {
         const setName = `set${capitalize(field.name)}`;
         const clearName = `clear${capitalize(field.name)}`;
@@ -265,7 +308,7 @@ export class ShaclParserService {
                 type: returnType,
                 args: {
                     input: {
-                        type: new GraphQLNonNull(this.generateInputObjectType(fieldType, `Create${capitalize(fieldType.name)}Input`, context))
+                        type: new GraphQLNonNull(this.generateInputObjectType(fieldType, `Create${capitalize(fieldType.name)}Input`, 'create', context))
                     }
                 }
             },
@@ -323,21 +366,14 @@ export class ShaclParserService {
 }
 
 
-function toInputField(field: GraphQLField<any, any>): GraphQLInputField {
-    const { name, description, type, deprecationReason, extensions, astNode } = field;
-    const isCollection = isListType(field.type);
-    const isNonNull = isNonNullType(field.type);
-    const fieldType = toScalarInputType(field.type);
-    return new GraphQLInputObjectType({
-        name: '_tmp',
-        fields: {
-            [field.name]: {
-                type: fieldType,
-                description: field.description,
-                extensions: field.extensions
-            }
-        }
-    }).getFields()[field.name];
+function toInputField(field: GraphQLField<any, any>, mutationType: 'create' | 'update'): GraphQLInputFieldConfig {
+    let fieldType = toScalarInputType(field.type);
+    fieldType = (mutationType === 'update' && isNonNullType(fieldType)) ? fieldType.ofType : fieldType
+    return {
+        type: fieldType,
+        description: field.description,
+        extensions: field.extensions
+    };
 }
 
 function toScalarInputType(type: GraphQLOutputType, modifiers: { collection?: boolean, nonNull?: boolean } = {}): GraphQLInputType {
@@ -374,6 +410,11 @@ function toScalarInputType(type: GraphQLOutputType, modifiers: { collection?: bo
     return res;
 }
 
+/**
+ * Whether this field is annotated with the @identifier directive
+ * @param field 
+ * @returns 
+ */
 function isIdentifier(field: GraphQLField<any, any> | GraphQLInputField) {
     const directives = field.extensions.directives as any;
     return directives && directives['identifier'];
