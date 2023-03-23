@@ -1,6 +1,7 @@
 import { PathLike } from "fs";
 import { mkdir } from "fs/promises";
-import { GraphQLList, GraphQLNonNull, GraphQLScalarType, GraphQLType, isListType, isNonNullType, isScalarType } from "graphql";
+import { GraphQLEnumType, GraphQLInterfaceType, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLOutputType, GraphQLScalarType, GraphQLType, GraphQLUnionType, isListType, isNonNullType, isObjectType, isScalarType } from "graphql";
+import { GraphQLInputObjectType } from "graphql/type/definition.js";
 
 /**
  * Report to console that there are no results, with optional extra phrase.
@@ -31,6 +32,21 @@ export const decapitalize = (str: string): string => str.slice(0, 1).toLowerCase
 export const plural = (str: string): string => `${str}Collection`;
 
 
-export const isOrContainsScalar = (type: unknown): type is GraphQLScalarType<unknown,unknown> => isScalarType(type)
-|| (isNonNullType(type) && isOrContainsScalar(type.ofType))
-|| (isListType(type) && isOrContainsScalar(type.ofType));
+export const isOrContainsScalar = (type: unknown): type is GraphQLScalarType<unknown, unknown> => isScalarType(type)
+    || (isNonNullType(type) && isOrContainsScalar(type.ofType))
+    || (isListType(type) && isOrContainsScalar(type.ofType));
+
+export const isOrContainsObjectType = (type: unknown): type is GraphQLObjectType<any, any> => isObjectType(type)
+    || (isNonNullType(type) && isOrContainsObjectType(type.ofType))
+    || (isListType(type) && isOrContainsObjectType(type.ofType));
+
+    export const isOrContainsInputObjectType = (type: unknown): type is GraphQLInputObjectType => isObjectType(type)
+    || (isNonNullType(type) && isOrContainsInputObjectType(type.ofType))
+    || (isListType(type) && isOrContainsInputObjectType(type.ofType));
+
+export const toActualType = (type: GraphQLOutputType): GraphQLObjectType | GraphQLScalarType<unknown, unknown> | GraphQLInterfaceType | GraphQLUnionType | GraphQLEnumType => {
+    return isListType(type) ? toActualType(type.ofType)
+        : isNonNullType(type) ? toActualType(type.ofType)
+            : isObjectType(type) ? type
+                : type
+}

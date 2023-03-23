@@ -1,6 +1,7 @@
 import { DirectiveLocation, GraphQLArgument, GraphQLDirective, GraphQLField, GraphQLObjectType, GraphQLSchema } from "graphql";
-import { isObjectType } from "graphql/type/definition.js";
+import { GraphQLInputField, GraphQLInputObjectType, isInputObjectType, isInputType, isObjectType } from "graphql/type/definition.js";
 import { autoInjectable, singleton } from "tsyringe";
+import { Context } from "../lib/context.js";
 
 const DOUBLE_NEWLINE = '\n\n';
 const SINGLE_NEWLINE = '\n';
@@ -23,7 +24,8 @@ export class SchemaPrinterService {
             printSchemaEntry(schema),
             printDirectiveDefinitions(schema).join(DOUBLE_NEWLINE),
             printRootTypes(schema).join(DOUBLE_NEWLINE),
-            printTypes(schema).join(DOUBLE_NEWLINE)
+            printTypes(schema).join(DOUBLE_NEWLINE),
+            printInputs(schema).join(DOUBLE_NEWLINE)
         ].join(DOUBLE_NEWLINE);
     }
 
@@ -108,7 +110,7 @@ function printTypes(schema: GraphQLSchema): string[] {
  * @returns 
  */
 function printType(type: GraphQLObjectType): string {
-    const fields = Object.values(type.getFields()!);
+    const fields = Object.values(type.getFields());
     let lines = [];
     if (type.description) {
         lines.push(`"${type.description}"`);
@@ -119,7 +121,50 @@ function printType(type: GraphQLObjectType): string {
     }
     typeLine += ' {';
     lines.push(typeLine);
-    lines.push(...fields.map(field => printField(field)));
+    lines.push(...fields.map(field => printField(field, false)));
+    lines.push('}')
+    return lines.join(SINGLE_NEWLINE);
+}
+
+/**
+ * Prints the InputObjectTypes of the schema
+ * @param schema 
+ * @returns 
+ */
+function printInputs(schema: GraphQLSchema): string[] {
+    const rootTypes = [
+        schema.getQueryType()?.name,
+        schema.getMutationType()?.name,
+        schema.getSubscriptionType()?.name
+    ].filter(t => !!t);
+    const types = Object.values(schema.getTypeMap())
+        // Remove internal types
+        .filter(type => !type.name.startsWith(INTERNAL_TYPE_START))
+        // Only ObjectType
+        .filter(type => isInputObjectType(type))
+        // Remove RootQueryType, RootMutationType or RootSubscriptionType
+        .filter(type => !rootTypes.includes(type.name));
+    return types.map(type => printInput(type as GraphQLInputObjectType));
+}
+
+/**
+ * Print a single InputObjectType
+ * @param type 
+ * @returns 
+ */
+function printInput(type: GraphQLInputObjectType): string {
+    const fields = Object.values(type.getFields());
+    let lines = [];
+    if (type.description) {
+        lines.push(`"${type.description}"`);
+    }
+    let typeLine = `input ${type.toString()}`;
+    if ('directives' in type.extensions) {
+        typeLine += printDirectives(type.extensions.directives!);
+    }
+    typeLine += ' {';
+    lines.push(typeLine);
+    lines.push(...fields.map(field => printField(field, true)));
     lines.push('}')
     return lines.join(SINGLE_NEWLINE);
 }
@@ -129,14 +174,15 @@ function printType(type: GraphQLObjectType): string {
  * @param field 
  * @returns 
  */
-function printField(field: GraphQLField<any, any>): string {
+function printField(field: GraphQLField<any, any> | GraphQLInputField, inputFields: boolean): string {
+    // console.log('field', field.type, field)
     let result = '';
     if (field.description) {
         result += `${INDENT}"${field.description}"${SINGLE_NEWLINE}`;
     }
     result += `${INDENT}${field.name}`;
-    if (field.args && field.args.length > 0) {
-        result += printArgs(field.args);
+    if (!inputFields && (field as GraphQLField<any, any>).args && (field as GraphQLField<any, any>).args.length > 0) {
+        result += printArgs((field as GraphQLField<any, any>).args);
     }
     result += `: ${field.type.toString()}`;
     if ('directives' in field.extensions) {
