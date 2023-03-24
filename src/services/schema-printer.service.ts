@@ -101,7 +101,9 @@ function printTypes(schema: GraphQLSchema): string[] {
         .filter(type => isObjectType(type))
         // Remove RootQueryType, RootMutationType or RootSubscriptionType
         .filter(type => !rootTypes.includes(type.name));
-    return types.map(type => printType(type as GraphQLObjectType));
+    return types
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(type => printType(type as GraphQLObjectType));
 }
 
 /**
@@ -121,7 +123,9 @@ function printType(type: GraphQLObjectType): string {
     }
     typeLine += ' {';
     lines.push(typeLine);
-    lines.push(...fields.map(field => printField(field, false)));
+    lines.push(...fields
+        .sort(sortAlphaExcept(['id', 'delete', 'update'], field => field.name))
+        .map(field => printField(field, false)));
     lines.push('}')
     return fields.length > 0 ? lines.join(SINGLE_NEWLINE) : '';
 }
@@ -144,7 +148,9 @@ function printInputs(schema: GraphQLSchema): string[] {
         .filter(type => isInputObjectType(type))
         // Remove RootQueryType, RootMutationType or RootSubscriptionType
         .filter(type => !rootTypes.includes(type.name));
-    return types.map(type => printInput(type as GraphQLInputObjectType));
+    return types
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(type => printInput(type as GraphQLInputObjectType));
 }
 
 /**
@@ -164,7 +170,9 @@ function printInput(type: GraphQLInputObjectType): string {
     }
     typeLine += ' {';
     lines.push(typeLine);
-    lines.push(...fields.map(field => printField(field, true)));
+    lines.push(...fields
+        .sort(sortAlphaExcept(['id', 'slug'], field => field.name))
+        .map(field => printField(field, true)));
     lines.push('}')
     return fields.length > 0 ? lines.join(SINGLE_NEWLINE) : '';
 }
@@ -214,4 +222,22 @@ function printDirectives(directivesMap: Record<string, any>): string {
         }
         return res;
     }).join(SPACE);
+}
+
+// function that sorts two objects alphabetically based on their name property, but a given array of names goes first in the order of that array
+function sortAlphaExcept<T>(first: string[], fieldSelector: (obj: T) => string) {
+    return function sortAlfa(aObj: T, bObj: T): number {
+        const a = fieldSelector(aObj);
+        const b = fieldSelector(bObj);
+        if (!first.includes(a) && !first.includes(b)) {
+            return a.localeCompare(b);
+        }
+        if (first.includes(a) && !first.includes(b)) {
+            return -1;
+        }
+        if (!first.includes(a) && first.includes(b)) {
+            return 1;
+        }
+        return first.indexOf(a) - first.indexOf(b);
+    }
 }
