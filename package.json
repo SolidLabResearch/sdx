@@ -2,17 +2,31 @@
   "name": "@solidlab/sdx",
   "version": "0.1.2",
   "description": "Solid Development Experience toolkit",
+  "type": "module",
   "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "sdx": "./dist/index.js"
   },
-  "type": "module",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsup",
+    "build:prod": "cross-env NODE_ENV=production tsup",
+    "build:watch": "npm run build -- --watch",
     "start": "npx sdx",
     "dev:install": "npx nodemon --exec \"npm run buildInstall\"",
     "dev": "npx nodemon --exec \"npm run build\"",
     "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-    "build": "tsc -p .",
     "buildInstall": "npm run build && npm i -g",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
@@ -28,16 +42,8 @@
     "type": "git"
   },
   "license": "ISC",
-  "devDependencies": {
-    "@graphql-tools/apollo-engine-loader": "^7.3.26",
-    "@types/n3": "^1.10.4",
-    "@types/node": "^18.11.11",
-    "@types/prompts": "^2.4.2",
-    "nodemon": "^2.0.20",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
-  },
   "dependencies": {
+    "@abraham/reflection": "^0.12.0",
     "@akanass/rx-http-request": "^3.3.0",
     "@graphql-codegen/cli": "^3.2.2",
     "@graphql-codegen/core": "^3.1.0",
@@ -49,9 +55,19 @@
     "graphql": "^16.6.0",
     "n3": "^1.16.3",
     "prompts": "^2.4.2",
-    "reflect-metadata": "^0.1.13",
     "rxjs": "^6.6.7",
     "tsyringe": "^4.7.0"
+  },
+  "devDependencies": {
+    "@graphql-tools/apollo-engine-loader": "^7.3.26",
+    "@types/n3": "^1.10.4",
+    "@types/node": "^18.11.11",
+    "@types/prompts": "^2.4.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "tsup": "^6.7.0",
+    "typescript": "^4.9.3"
   },
   "publishConfig": {
     "access": "public"
