@@ -1,0 +1,44 @@
+schema {
+  query: RootQueryType
+}
+
+directive @is(class: String) on OBJECT
+
+directive @property(iri: String) on FIELD_DEFINITION
+
+directive @identifier on FIELD_DEFINITION
+
+type RootQueryType {
+  contact(id: String): Contact
+  contactCollection: [Contact]
+  address(id: String): Address
+  addressCollection: [Address]
+  organization(id: String): Organization
+  organizationCollection: [Organization]
+}
+
+type Contact @is(class: "http://schema.org/Person") {
+  "Auto-generated property that will be assigned to the `iri` of the Thing that is being queried."
+  id: ID! @identifier
+  givenName: String! @property(iri: "http://schema.org/givenName")
+  familyName: String! @property(iri: "http://schema.org/familyName")
+  email: [String] @property(iri: "http://schema.org/email")
+  address: Address @property(iri: "http://schema.org/address")
+  worksFor: [Organization] @property(iri: "http://schema.org/worksFor")
+}
+
+type Address @is(class: "http://schema.org/PostalAddress") {
+  "Auto-generated property that will be assigned to the `iri` of the Thing that is being queried."
+  id: ID! @identifier
+  country: String! @property(iri: "http://schema.org/addressCountry")
+  city: String! @property(iri: "http://schema.org/addressLocality")
+  streetLine: String! @property(iri: "http://schema.org/streetAddress")
+  postalCode: String! @property(iri: "http://schema.org/postalCode")
+}
+
+type Organization @is(class: "http://schema.org/Organization") {
+  "Auto-generated property that will be assigned to the `iri` of the Thing that is being queried."
+  id: ID! @identifier
+  name: String! @property(iri: "http://schema.org/name")
+  address: Address @property(iri: "http://schema.org/address")
+}
