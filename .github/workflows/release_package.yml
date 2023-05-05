@@ -32,9 +32,11 @@ jobs:
       - name: Run tests
         run: npm test
         
-      # Build
+      # Make sure version.ts (will be overwritten later) is present and build
       - name: Build library
-        run: npm run build:prod
+        run: |
+          npm run build:version
+          npm run build:prod
 
       # Configure Git
       - name: Git configuration
