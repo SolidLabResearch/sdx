@@ -21,13 +21,11 @@
   ],
   "scripts": {
     "build": "tsup",
-    "build:prod": "cross-env NODE_ENV=production tsup",
+    "build:prod": "cross-env NODE_ENV=production tsup && npm run build:version",
     "build:watch": "npm run build -- --watch",
+    "build:install": "npm run build:prod && npm i -g",
+    "build:version": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts && tsup --clean=false src/version.ts",
     "start": "npx sdx",
-    "dev:install": "npx nodemon --exec \"npm run buildInstall\"",
-    "dev": "npx nodemon --exec \"npm run build\"",
-    "prebuild": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts",
-    "buildInstall": "npm run build && npm i -g",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "keywords": [
@@ -52,6 +50,7 @@
     "@graphql-codegen/typescript-operations": "^3.0.2",
     "chalk": "^5.1.2",
     "commander": "^9.4.1",
+    "dotenv": "^16.0.3",
     "graphql": "^16.6.0",
     "n3": "^1.16.3",
     "prompts": "^2.4.2",

@@ -7,15 +7,13 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { rm, writeFile } from "fs/promises";
 import { dirname } from "path";
+import { env } from "process";
 import {
-  DEMO_POD_SCHEMAS_URI,
   ERROR,
-  PATH_SDX_GENERATE_GRAPHQL_FOLDER,
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
   PATH_SDX_GENERATE_SHACL_FOLDER,
   TEST_COMPLEX_SHACL_FILE_PATH,
   TEST_GRAPHQL_FILE_PATH,
-  TEST_SHACL_FILE_PATH,
 } from "./constants.js";
 import { SdxClient } from "./lib/sdx-client.js";
 import { ProjectBuilder } from "./project-builder.js";
@@ -23,12 +21,12 @@ import { ProjectService } from "./services/project.service.js";
 import { SchemaPrinterService } from "./services/schema-printer.service.js";
 import { SearchService } from "./services/search.service.js";
 import { ShaclParserService } from "./services/shacl-parser.service.js";
-import { ensureDir, SOLID_PURPLE } from "./util.js";
-import { LIB_VERSION } from "./version.js";
 import { TypeGeneratorService } from "./services/type-generator.service.js";
+import { SOLID_PURPLE, ensureDir } from "./util.js";
+import { LIB_VERSION } from "./version.js";
 
 // Remove warnings
-process.removeAllListeners("warning");
+// process.removeAllListeners("warning");
 
 const program = new Command();
 const projectBuilder = new ProjectBuilder();
