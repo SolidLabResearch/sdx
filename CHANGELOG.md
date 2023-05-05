@@ -5,8 +5,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### Removed
-- Logger library typescript-logging removed, since it was not being used yet.
 
 ## 1.0.0-beta.6 - 2023-05-03
 ### Added
@@ -20,3 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 1.0.0-beta.5 - 2023-04-13
 ### Added
 - Changelog
+
+## 0.2.0 - 2023-05-05
+### Removed
+- Logger library typescript-logging removed, since it was not being used yet.
