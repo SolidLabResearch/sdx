@@ -7,7 +7,6 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { rm, writeFile } from 'fs/promises';
 import { dirname } from 'path';
-import { env } from 'process';
 import {
   ERROR,
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
@@ -15,7 +14,6 @@ import {
   TEST_COMPLEX_SHACL_FILE_PATH,
   TEST_GRAPHQL_FILE_PATH
 } from './constants.js';
-import { SdxClient } from './lib/sdx-client.js';
 import { ProjectBuilder } from './project-builder.js';
 import { ProjectService } from './services/project.service.js';
 import { SchemaPrinterService } from './services/schema-printer.service.js';
@@ -122,51 +120,51 @@ demoCommand
     await fireSchemasChanged();
   });
 
-program
-  .command('query')
-  .description('client test')
-  .action(async () => {
-    const client = new SdxClient();
-    const result = JSON.stringify(
-      await client.query(`#graphql
-        { 
-            contactCollection {
-                givenName
-                familyName
-            }
-            contact(id: "http://example.org/cont/tdupont") {
-                id 
-                givenName
-                address {
-                    streetLine
-                    city
-                    }
-                email
-                worksFor {
-                    name
-                    address {
-                        streetLine
-                        city
-                    }
-                }
-            }
-            addressCollection {
-                streetLine
-                city
-            }
-            organizationCollection {
-                name
-                address {
-                    streetLine
-                }
-            }
-        }
-        `),
-      null,
-      2
-    );
-    console.log(result);
-  });
+// program
+//   .command('query')
+//   .description('client test')
+//   .action(async () => {
+//     const client = new SdxClient();
+//     const result = JSON.stringify(
+//       await client.query(`#graphql
+//         {
+//             contactCollection {
+//                 givenName
+//                 familyName
+//             }
+//             contact(id: "http://example.org/cont/tdupont") {
+//                 id
+//                 givenName
+//                 address {
+//                     streetLine
+//                     city
+//                     }
+//                 email
+//                 worksFor {
+//                     name
+//                     address {
+//                         streetLine
+//                         city
+//                     }
+//                 }
+//             }
+//             addressCollection {
+//                 streetLine
+//                 city
+//             }
+//             organizationCollection {
+//                 name
+//                 address {
+//                     streetLine
+//                 }
+//             }
+//         }
+//         `),
+//       null,
+//       2
+//     );
+//     console.log(result);
+//   });
 
 program
   .command('generate')
@@ -174,7 +172,7 @@ program
   .action(async () => {
     const schema = await parser.parseSHACL(TEST_COMPLEX_SHACL_FILE_PATH);
     // Write schema to file
-    ensureDir(dirname(TEST_GRAPHQL_FILE_PATH)).then((_) =>
+    ensureDir(dirname(TEST_GRAPHQL_FILE_PATH)).then(() =>
       writeFile(TEST_GRAPHQL_FILE_PATH, printer.printSchema(schema), {
         flag: 'w'
       })

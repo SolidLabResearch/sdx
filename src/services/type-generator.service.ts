@@ -3,7 +3,7 @@ import { autoInjectable, singleton } from 'tsyringe';
 
 import { generate } from '@graphql-codegen/cli';
 import { codegen } from '@graphql-codegen/core';
-import { readFile, writeFile, appendFile, stat, readdir } from 'fs/promises';
+import { appendFile, readFile, readdir, stat, writeFile } from 'fs/promises';
 import { GraphQLSchema, parse } from 'graphql';
 import {
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
@@ -15,8 +15,8 @@ import {
 import { ShaclParserService } from './shacl-parser.service.js';
 
 import * as typescriptPlugin from '@graphql-codegen/typescript';
-import * as typescriptOperationsPlugin from '@graphql-codegen/typescript-operations';
 import * as typescriptGenericSdkPlugin from '@graphql-codegen/typescript-generic-sdk';
+import * as typescriptOperationsPlugin from '@graphql-codegen/typescript-operations';
 import chalk from 'chalk';
 
 const TYPES_OUTPUT_PATH = './src/types/generated_types.d.ts';

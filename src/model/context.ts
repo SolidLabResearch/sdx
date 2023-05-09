@@ -1,8 +1,8 @@
 import { GraphQLObjectType } from 'graphql';
 import { GraphQLInputObjectType } from 'graphql/type/definition.js';
 import { Quad, Store } from 'n3';
-import { Shape } from './model/shape.js';
-import { groupBySubject } from './util.js';
+import { groupBySubject } from '../util.js';
+import { Shape } from './shape.js';
 import { RDFS, SHACL } from './vocab.js';
 
 export class Context {
@@ -33,10 +33,6 @@ export class Context {
    */
   getStore(): Store {
     return this.store;
-  }
-
-  getShapes(): Shape[] {
-    return this.shapes;
   }
 
   getGraphQLObjectTypes(): GraphQLObjectType[] {

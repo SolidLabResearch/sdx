@@ -1,9 +1,9 @@
 import { GraphQLObjectType, GraphQLType } from 'graphql';
 import * as Scalars from 'graphql/type/scalars.js';
 import { DataFactory, NamedNode, Quad, Store } from 'n3';
-import { Context } from '../context.js';
+import { Context } from './context.js';
 import { parseNameFromUri } from '../util.js';
-import { RDFS, SHACL, XSD } from '../vocab.js';
+import { RDFS, SHACL, XSD } from './vocab.js';
 const { namedNode } = DataFactory;
 
 export class PropertyShape {

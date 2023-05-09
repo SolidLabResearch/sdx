@@ -23,9 +23,9 @@ import * as Scalars from 'graphql/type/scalars.js';
 import { Parser, Quad } from 'n3';
 import { autoInjectable, singleton } from 'tsyringe';
 import { ERROR } from '../constants.js';
-import { Context } from '../lib/context.js';
-import { PropertyShape } from '../lib/model/property-shape.js';
-import { Shape } from '../lib/model/shape.js';
+import { Context } from '../model/context.js';
+import { Shape } from '../model/shape.js';
+import { PropertyShape } from '../model/property-shape.js';
 import {
   capitalize,
   decapitalize,
@@ -37,8 +37,7 @@ import {
 
 const ID_FIELD: { id: GraphQLFieldConfig<any, any> } = {
   id: {
-    description:
-      'Auto-generated property that will be assigned to the `iri` of the Thing that is being queried.',
+    description: `Auto-generated property that will be assigned to the 'iri' of the Thing that is being queried.`,
     type: new GraphQLNonNull(Scalars.GraphQLID),
     extensions: {
       directives: {

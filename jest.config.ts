@@ -8,7 +8,10 @@ const config: JestConfigWithTsJest = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }]
   },
-  setupFilesAfterEnv: ['jest-extended/all']
+  setupFilesAfterEnv: ['jest-extended/all'],
+  moduleNameMapper: {
+    '(.+)\\.js': '$1'
+  }
 };
 
 export default config;

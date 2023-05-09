@@ -10,11 +10,9 @@ import {
   GraphQLInputField,
   GraphQLInputObjectType,
   isInputObjectType,
-  isInputType,
   isObjectType
 } from 'graphql/type/definition.js';
 import { autoInjectable, singleton } from 'tsyringe';
-import { Context } from '../lib/context.js';
 
 const DOUBLE_NEWLINE = '\n\n';
 const SINGLE_NEWLINE = '\n';

@@ -3,12 +3,9 @@ import { mkdir } from 'fs/promises';
 import {
   GraphQLEnumType,
   GraphQLInterfaceType,
-  GraphQLList,
-  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLScalarType,
-  GraphQLType,
   GraphQLUnionType,
   isListType,
   isNonNullType,
@@ -16,6 +13,7 @@ import {
   isScalarType
 } from 'graphql';
 import { GraphQLInputObjectType } from 'graphql/type/definition.js';
+import { Quad, Quad_Subject, Store } from 'n3';
 
 /**
  * Report to console that there are no results, with optional extra phrase.
@@ -83,3 +81,34 @@ export const toActualType = (
     ? type
     : type;
 };
+
+export function parseNameFromUri(uriString: string): string {
+  const uri = new URL(uriString);
+  // If the URI has a fragment, use fragment, otherwise use the last path segment
+  return uri.hash.length > 0
+    ? uri.hash.slice(1)
+    : uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1);
+}
+
+export function groupBySubject(quads: Quad[]): Map<Quad_Subject, Quad[]> {
+  return quads.reduce((index, quad) => {
+    if (index.has(quad.subject)) {
+      index.get(quad.subject)!.push(quad);
+    } else {
+      index.set(quad.subject, [quad]);
+    }
+    return index;
+  }, new Map<Quad_Subject, Quad[]>());
+}
+
+export function printQuads(quads: Quad[] | Store, label?: string) {
+  if (label) {
+    console.log(`${label} ==> `);
+  }
+  const q = Array.isArray(quads)
+    ? quads
+    : quads.getQuads(null, null, null, null);
+  q.forEach((q) =>
+    console.log(`[${q.subject.value} ${q.predicate.value} ${q.object.value}]`)
+  );
+}

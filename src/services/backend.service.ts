@@ -1,8 +1,7 @@
 import { RxHR, RxHttpRequestResponse } from '@akanass/rx-http-request';
-import { Observable, OperatorFunction, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators/index.js';
-import { autoInjectable, injectable, isValueProvider } from 'tsyringe';
-import { DEMO_POD_SCHEMAS_URI } from '../constants.js';
+import { autoInjectable } from 'tsyringe';
 import { Page, PageArgs, SolidType } from '../types.js';
 
 const API_ROOT = '/api';

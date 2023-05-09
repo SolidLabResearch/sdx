@@ -1,4 +1,3 @@
-import { RxHR } from '@akanass/rx-http-request';
 import chalk from 'chalk';
 import { createHash } from 'crypto';
 import {
