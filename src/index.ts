@@ -14,7 +14,6 @@ import {
   TEST_COMPLEX_SHACL_FILE_PATH,
   TEST_GRAPHQL_FILE_PATH
 } from './constants.js';
-import { ProjectBuilder } from './project-builder.js';
 import { ProjectService } from './services/project.service.js';
 import { SchemaPrinterService } from './services/schema-printer.service.js';
 import { SearchService } from './services/search.service.js';
@@ -27,7 +26,6 @@ import { LIB_VERSION } from './version.js';
 // process.removeAllListeners("warning");
 
 const program = new Command();
-const projectBuilder = new ProjectBuilder();
 const project = new ProjectService();
 const search = new SearchService();
 const parser = new ShaclParserService();
@@ -48,7 +46,7 @@ program
     'Overwrite any package.json that might be present.',
     false
   )
-  .action((options) => projectBuilder.initProject(options));
+  .action((options) => project.initProject(options));
 
 // search
 program

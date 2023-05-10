@@ -15,11 +15,12 @@ import {
   PATH_SDX_GENERATE_SHACL_FOLDER,
   PATH_SOLID_MANIFEST
 } from '../constants.js';
-import { SolidManifest, SolidType } from '../types.js';
+import { InitOptions, SolidManifest, SolidType } from '../types.js';
 import { noResults, SOLID_PURPLE } from '../util.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
 import { SearchService } from './search.service.js';
+import { ProjectBuilder } from '../project-builder.js';
 
 // const require = createRequire(import.meta.url);
 @autoInjectable()
@@ -30,6 +31,10 @@ export class ProjectService {
     private search?: SearchService,
     private cache?: CacheService
   ) {}
+
+  async initProject(options: InitOptions): Promise<void> {
+    new ProjectBuilder().initProject(options);
+  }
 
   listTypes(): any {
     const manifest: SolidManifest = JSON.parse(

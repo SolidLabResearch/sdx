@@ -19,14 +19,14 @@ import * as typescriptGenericSdkPlugin from '@graphql-codegen/typescript-generic
 import * as typescriptOperationsPlugin from '@graphql-codegen/typescript-operations';
 import chalk from 'chalk';
 
-const TYPES_OUTPUT_PATH = './src/types/generated_types.d.ts';
-
 @singleton()
 @autoInjectable()
 export class TypeGeneratorService {
   private parser = new ShaclParserService();
 
-  async generateTypesAndMore(schemaPath: PathLike): Promise<void> {
+  async generateTypesAndMore(
+    schemaPath: PathLike = PATH_SDX_GENERATE_GRAPHQL_SCHEMA
+  ): Promise<void> {
     const gen = async (documents: string[]) => {
       if (documents.length === 0) {
         // Warn no queries
@@ -60,7 +60,7 @@ export class TypeGeneratorService {
       // Generates
       await generate(
         {
-          schema: PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
+          schema: schemaPath.toString(),
           documents,
           generates
         },
@@ -133,10 +133,5 @@ export class TypeGeneratorService {
     } catch (err: any) {
       console.log(err);
     }
-  }
-
-  private async getSchema(): Promise<GraphQLSchema> {
-    // FIXME: Temporary workaround: reparsing from SHACL, as not to loose directives info
-    return this.parser.parseSHACL(TEST_COMPLEX_SHACL_FILE_PATH);
   }
 }

@@ -13,7 +13,7 @@ import { InitOptions } from './types.js';
 import { SOLID_PURPLE } from './util.js';
 
 export class ProjectBuilder {
-  async initProject(options: InitOptions) {
+  async initProject(options: InitOptions): Promise<void> {
     // Gather inputs
     this.logPurple('Initializing workspace, first some questions ...');
     const skipPackageJson = this.packageJsonExists() && !options.force;
