@@ -1,48 +1,3 @@
-export interface NpmSearchResult {
-  objects: NpmSearchResultObject[];
-  total: number;
-  time: string;
-}
-
-export interface NpmSearchResultObject {
-  package: NpmPackage;
-  score: NpmScore;
-  searchScore: number;
-}
-
-export interface NpmPackage {
-  name: string;
-  version: string;
-  scope: string;
-  description: string;
-  keywords: string[];
-  date: string;
-  links: Record<string, string>;
-  publisher: NpmUser;
-  maintainers: NpmUser[];
-}
-
-export interface NpmUser {
-  username: string;
-  email: string;
-}
-
-export interface NpmScore {
-  final: number;
-  detail: {
-    quality: number;
-    popularity: number;
-    maintenance: number;
-  };
-}
-
-export interface NpmDownloadsPointResult {
-  downloads: number;
-  start: string;
-  end: string;
-  package: string;
-}
-
 export interface InitOptions {
   force: boolean;
   name?: string;
@@ -70,23 +25,45 @@ export interface SdxRepository {
   uri: string;
 }
 
-export interface SolidType {
+export interface SolidPackage extends Dated {
   id: string;
+  maintainers: string[];
   name?: string;
   description?: string;
   license?: string;
   author?: string;
-  maintainers: string;
-  createdAt: string;
-  lastModifiedAt?: string;
   homepage?: string;
   repository?: string;
-  downloads: number;
+  downloads?: number;
 }
+
+export interface SolidType extends Dated {
+  id: string;
+  packageIdentifier: string;
+  name?: string;
+  description?: string;
+  properties: SolidTypeProperty[];
+}
+
+export interface SolidTypeProperty {
+  class: string | null;
+  name: string;
+  path: string | null;
+  description: string | null;
+  datatype: string | null;
+  minCount: number | null;
+  maxCount: number | null;
+}
+
 export interface Page<T> {
   items: T[];
   cursor?: string;
   count?: number;
+}
+
+export interface Dated {
+  createdAt: string;
+  lastModifiedAt?: string;
 }
 
 /**
@@ -108,3 +85,13 @@ export interface PageArgs {
  * Arguments for filtering, cursor property cannot be used.
  */
 export type FilterArgs = Omit<PageArgs, 'cursor'>;
+
+export interface PackageImportReport {
+  typesCreated: string[];
+  typesUpdated: string[];
+}
+
+export interface SearchTypeOutput {
+  typePackage: SolidPackage;
+  typeMatches: string[];
+}

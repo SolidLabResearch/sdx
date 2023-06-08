@@ -15,18 +15,31 @@ export class SearchService {
     this.repositories = this.fetchRepositories();
   }
 
-  search(type: string): void {
-    this.backend!.searchType(type)
+  search(query: string): void {
+    this.backend!.searchType(query)
       .pipe(
-        map((results) => results.sort((a, b) => b.downloads - a.downloads)),
+        map((results) =>
+          results.sort(
+            (a, b) =>
+              (b.typePackage.downloads ?? 0) - (a.typePackage.downloads ?? 0)
+          )
+        ),
         tap((results) => this.cache!.storeListToCache(results))
       )
       .subscribe((results) => {
-        const tx = results.map(({ id, name, downloads }) => ({
-          name,
-          id,
-          downloads
-        }));
+        const tx = results.map(({ typeMatches, typePackage }) => {
+          const { id, name, downloads } = typePackage;
+          let matchingTypes = typeMatches.slice(0, 3).map(iriToName).join(`, `);
+          if (typeMatches.length > 3) {
+            matchingTypes += ', ...';
+          }
+          return {
+            matchingTypes,
+            name,
+            // id,
+            downloads
+          };
+        });
         console.table(tx);
       });
   }
@@ -41,4 +54,9 @@ export class SearchService {
       return [];
     }
   }
+}
+
+function iriToName(iri: string): string {
+  const idx = iri.lastIndexOf('#');
+  return idx > -1 ? iri.slice(idx + 1) : iri;
 }

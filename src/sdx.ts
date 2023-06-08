@@ -59,7 +59,7 @@ program
   .command('search')
   .description('Search for a type package via the SolidLab Catalog API.')
   .argument('<query>', 'query to search for')
-  .action((type) => search.search(type));
+  .action((query) => search.search(query));
 
 // install
 const installCommand = program

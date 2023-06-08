@@ -2,10 +2,16 @@ import { RxHR, RxHttpRequestResponse } from '@akanass/rx-http-request';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators/index.js';
 import { autoInjectable } from 'tsyringe';
-import { Page, PageArgs, SolidType } from '../types.js';
+import {
+  Page,
+  PageArgs,
+  SearchTypeOutput,
+  SolidPackage,
+  SolidType
+} from '../types.js';
 
 const API_ROOT = '/api';
-const apiHost = 'http://127.0.0.1:8080';
+const apiHost = 'https://catalog.solid.discover.ilabt.imec.be';
 
 /**
  * Creates a URL with the {@link API_ROOT}, path, and args appended as querystring.
@@ -29,6 +35,20 @@ export class BackendService {
   private http = RxHR;
 
   /**
+   * Search for a type.
+   *
+   * @param query - Term to search for
+   */
+  searchPackage(query: string): Observable<SolidPackage[]> {
+    return this.http
+      .post<SolidPackage[]>(url('search/package'), {
+        json: true,
+        body: { keyword: query }
+      })
+      .pipe(map(mapToResultOrError));
+  }
+
+  /**
    * List all types.
    */
   listTypes(args?: PageArgs): Observable<Page<SolidType>> {
@@ -42,9 +62,9 @@ export class BackendService {
    *
    * @param query - Term to search for
    */
-  searchType(query: string): Observable<SolidType[]> {
+  searchType(query: string): Observable<SearchTypeOutput[]> {
     return this.http
-      .post<SolidType[]>(url('type-search'), {
+      .post<SolidType[]>(url('search/type'), {
         body: { keyword: query },
         json: true
       })
