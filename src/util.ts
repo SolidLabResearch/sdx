@@ -28,6 +28,7 @@ export function noResults(extraPhrase?: string): void {
 }
 
 export const SOLID_PURPLE = '#7C4DFF';
+export const SOLID_WARN = '#FF6700';
 
 /**
  * Recursively create a directory at the given `path`.

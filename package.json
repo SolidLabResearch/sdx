@@ -3,17 +3,17 @@
   "version": "0.2.0",
   "description": "Solid Development Experience toolkit",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/sdx.js",
+  "module": "./dist/sdx.js",
+  "types": "./dist/sdx.d.ts",
   "bin": {
-    "sdx": "./dist/index.js"
+    "sdx": "./dist/sdx.js"
   },
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/sdx.cjs",
+      "import": "./dist/sdx.js",
+      "types": "./dist/sdx.d.ts"
     }
   },
   "files": [

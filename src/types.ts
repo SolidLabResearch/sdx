@@ -45,6 +45,7 @@ export interface NpmDownloadsPointResult {
 
 export interface InitOptions {
   force: boolean;
+  name?: string;
 }
 
 export interface SdxConfig {

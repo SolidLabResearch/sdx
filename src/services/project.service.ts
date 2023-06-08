@@ -32,8 +32,16 @@ export class ProjectService {
     private cache?: CacheService
   ) {}
 
-  async initProject(options: InitOptions): Promise<void> {
-    new ProjectBuilder().initProject(options);
+  /**
+   * Initialise a new project.
+   * This sets up all necessary files and directories, including the package.json if it is not present.
+   * @param options
+   */
+  async initProject(
+    name: string | undefined,
+    options: InitOptions
+  ): Promise<void> {
+    new ProjectBuilder().initProject(name, options);
   }
 
   listTypes(): any {
