@@ -46,23 +46,22 @@ export class ProjectBuilder {
       }
     }
 
-    // .solidmanifest
-    this.logPurple('Writing .solidmanifest ...');
+    // .solidmanifestc
     this.initSolidManifest(inputs, name);
 
     // .sdxconfig
-    this.logPurple('Writing .sdxconfig ...');
     this.initSdxConfig(name);
 
     // Create types folder
-    this.logPurple('Creating sdx-types folder ...');
     this.initSdxTypesFolder(name);
 
     // If no package.json, then create one
     this.initPackageJson(skipPackageJson, inputs, name);
 
     // Install libraries
-    this.installLibraries(name);
+    if (!options.noLibs) {
+      this.installLibraries(name);
+    }
 
     this.logPurple('Successfully set up workspace!');
     chalk.reset();
@@ -108,6 +107,7 @@ export class ProjectBuilder {
   }
 
   private initSdxConfig(folder?: string) {
+    this.logPurple('Writing .sdxconfig ...');
     const path = folder ? `${folder}/${PATH_SDX_CONFIG}` : PATH_SDX_CONFIG;
     try {
       writeFileSync(path, JSON.stringify(path, null, 4));
@@ -117,6 +117,7 @@ export class ProjectBuilder {
   }
 
   private initSolidManifest(inputs: any, folder?: string) {
+    this.logPurple('Writing .solidmanifest ...');
     const path = folder
       ? `${folder}/${PATH_SOLID_MANIFEST}`
       : PATH_SOLID_MANIFEST;
@@ -132,6 +133,7 @@ export class ProjectBuilder {
   }
 
   private initSdxTypesFolder(folder?: string) {
+    this.logPurple('Creating sdx-types folder ...');
     const path = folder
       ? `${folder}/${PATH_SDX_TYPES_FOLDER}`
       : PATH_SDX_TYPES_FOLDER;

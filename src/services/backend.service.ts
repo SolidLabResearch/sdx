@@ -6,7 +6,7 @@ import {
   Page,
   PageArgs,
   SearchTypeOutput,
-  SolidPackage,
+  SolidTypePackage,
   SolidType
 } from '../types.js';
 
@@ -39,9 +39,9 @@ export class BackendService {
    *
    * @param query - Term to search for
    */
-  searchPackage(query: string): Observable<SolidPackage[]> {
+  searchPackage(query: string): Observable<SolidTypePackage[]> {
     return this.http
-      .post<SolidPackage[]>(url('search/package'), {
+      .post<SolidTypePackage[]>(url('search/package'), {
         json: true,
         body: { keyword: query }
       })
@@ -99,6 +99,28 @@ export class BackendService {
   demoDownloadSchema(iri: string): Observable<string> {
     return this.http
       .get(iri, { headers: { 'content-type': 'text/turtle' } })
+      .pipe(map(mapToResultOrError));
+  }
+
+  /**
+   * Get a type package
+   * @param id - Id of the type.
+   */
+  getTypePackage(id: string): Observable<SolidTypePackage> {
+    return this.http
+      .get<SolidTypePackage>(url(`packages/${id}`), { json: true })
+      .pipe(map(mapToResultOrError));
+  }
+
+  /**
+   * Dowload the SHACL of a type package
+   */
+  getTypePackageShacl(id: string): Observable<string> {
+    console.log('downloading from api:', url(`packages/${id}/download)`));
+    return this.http
+      .get(url(`packages/${id}/download`), {
+        headers: { 'content-type': 'text/turtle' }
+      })
       .pipe(map(mapToResultOrError));
   }
 }

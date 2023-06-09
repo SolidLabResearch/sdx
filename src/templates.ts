@@ -10,5 +10,5 @@ export const DEFAULT_SOLID_MANIFEST: SolidManifest = {
   name: 'my-solid-app',
   author: '',
   license: 'ISC',
-  types: []
+  typePackages: []
 };

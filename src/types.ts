@@ -1,5 +1,6 @@
 export interface InitOptions {
   force: boolean;
+  noLibs: boolean;
   name?: string;
 }
 
@@ -17,7 +18,7 @@ export interface SolidManifest {
   name: string;
   author: string;
   license: string;
-  types: SolidType[];
+  typePackages: SolidTypePackage[];
 }
 
 export interface SdxRepository {
@@ -25,7 +26,7 @@ export interface SdxRepository {
   uri: string;
 }
 
-export interface SolidPackage extends Dated {
+export interface SolidTypePackage extends Dated {
   id: string;
   maintainers: string[];
   name?: string;
@@ -92,6 +93,6 @@ export interface PackageImportReport {
 }
 
 export interface SearchTypeOutput {
-  typePackage: SolidPackage;
+  typePackage: SolidTypePackage;
   typeMatches: string[];
 }

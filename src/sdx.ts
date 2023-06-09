@@ -48,8 +48,13 @@ program
     'Name of the project (creates folder with that name in current directory)'
   )
   .option(
-    '-f, --force',
+    '-f, --force [boolean]',
     'Overwrite any package.json that might be present.',
+    false
+  )
+  .option(
+    '--noLibs',
+    'Do not install the sdx libraries (@solidlab/sdx and @solidlab/sdx-sdk)',
     false
   )
   .action((name, options) => project.initProject(name, options));
@@ -76,7 +81,7 @@ installCommand
     '<IRI|index>',
     'Full IRI of type package or index (from search results)'
   )
-  .action(TODO);
+  .action((iriOrIndex) => project.installTypePackage(iriOrIndex));
 
 // uninstall
 const uninstallCommand = program
@@ -93,22 +98,22 @@ uninstallCommand
     '<IRI|index>',
     'Full IRI of type package or index  (from list results)'
   )
-  .action(TODO);
+  .action((iriOrIndex) => project.unInstallTypePackage(iriOrIndex));
 
 // type
-const typeCommand = program
+const typePackageCommand = program
   .command('package')
   .alias('packages')
   .description('Execute standard operations on type packages.');
 
 // type list
-typeCommand
+typePackageCommand
   .command('list')
   .description('List all installed type packages.')
-  .action(TODO);
+  .action(() => project.listTypePackages());
 
 // type install
-typeCommand
+typePackageCommand
   .command('install')
   .argument(
     '<IRI|index>',
@@ -117,10 +122,10 @@ typeCommand
   .description(
     'Install a type package using an IRI or an index (from search results).'
   )
-  .action(TODO);
+  .action((iriOrIndex) => project.installTypePackage(iriOrIndex));
 
 // type uninstall
-typeCommand
+typePackageCommand
   .command('uninstall')
   .description(
     'Uninstall a type package using an IRI or an index (from list results).'
@@ -129,7 +134,7 @@ typeCommand
     '<IRI|index>',
     'Full IRI of type package or index  (from list results)'
   )
-  .action(TODO);
+  .action((iriOrIndex) => project.unInstallTypePackage(iriOrIndex));
 
 // list
 const listCommand = program.command('list').description('list objects');
@@ -139,7 +144,7 @@ listCommand
   .command('packages')
   .alias('package')
   .description('List all installed type packages.')
-  .action(TODO);
+  .action(() => project.listTypePackages());
 
 // generate
 const generateCommand = program

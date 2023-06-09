@@ -15,12 +15,12 @@ import {
   PATH_SDX_GENERATE_SHACL_FOLDER,
   PATH_SOLID_MANIFEST
 } from '../constants.js';
-import { InitOptions, SolidManifest, SolidType } from '../types.js';
+import { ProjectBuilder } from '../project-builder.js';
+import { InitOptions, SolidManifest, SolidTypePackage } from '../types.js';
 import { noResults, SOLID_PURPLE } from '../util.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
 import { SearchService } from './search.service.js';
-import { ProjectBuilder } from '../project-builder.js';
 
 // const require = createRequire(import.meta.url);
 @autoInjectable()
@@ -44,55 +44,57 @@ export class ProjectService {
     new ProjectBuilder().initProject(name, options);
   }
 
-  listTypes(): any {
+  listTypePackages(): any {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const results = Object.values(manifest.types).map(({ name, id }) => ({
-      name,
-      id
-    }));
+    const results = Object.values(manifest.typePackages).map(
+      ({ name, id }) => ({
+        name,
+        id
+      })
+    );
     if (results.length === 0) {
       noResults();
       return;
     }
-    this.cache?.storeListToCache<Partial<SolidType>>(results);
+    this.cache?.storeListToCache<Partial<SolidTypePackage>>(results);
     console.table(results);
   }
 
-  installType(iriOrIdx: string): void {
+  installTypePackage(iriOrIdx: string): void {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
-      iri = this.cache!.readListFromCache<SolidType>()[idx].id!;
+      iri = this.cache!.readListFromCache<SolidTypePackage>()[idx].id!;
     }
     if (!iri) {
       console.error('A type with that index cannot be found!');
     }
 
-    console.log(chalk.hex(SOLID_PURPLE)(`Installing type ${iri}`));
+    console.log(chalk.hex(SOLID_PURPLE)(`Installing type package ${iri}`));
 
     const id = encodeURIComponent(iri);
     forkJoin([
-      this.backend!.getType(id),
-      this.backend!.getTypeScheme(id)
-    ]).subscribe(([type, scheme]) => {
-      this.saveSolidTypeToManifest(type);
+      this.backend!.getTypePackage(id),
+      this.backend!.getTypePackageShacl(id)
+    ]).subscribe(([typePackage, scheme]) => {
+      this.saveSolidTypeToManifest(typePackage);
       this.storeSchemeToDisk(iri, scheme);
     });
   }
 
-  unInstallType(iriOrIdx: string): void {
+  unInstallTypePackage(iriOrIdx: string): void {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
-      iri = this.cache!.readListFromCache<SolidType>()[idx].id!;
+      iri = this.cache!.readListFromCache<SolidTypePackage>()[idx].id!;
     }
     if (!iri) {
       console.error('A type with that index cannot be found!');
     }
 
-    console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling type ${iri}`));
+    console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling type package ${iri}`));
 
     this.removeSchemeFromDisk(iri);
     this.removeSolidTypeToManifest(iri);
@@ -154,28 +156,30 @@ export class ProjectService {
     return sha.digest('hex');
   }
 
-  private saveSolidTypeToManifest(type: SolidType): void {
+  private saveSolidTypeToManifest(typePackage: SolidTypePackage): void {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const idx = manifest.types.findIndex((tt) => tt.id === type.id);
+    const idx = manifest.typePackages.findIndex(
+      (tt) => tt.id === typePackage.id
+    );
     if (idx > -1) {
-      manifest.types[idx] = type;
+      manifest.typePackages[idx] = typePackage;
     } else {
-      manifest.types.push(type);
+      manifest.typePackages.push(typePackage);
     }
     writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), {
       flag: 'w'
     });
   }
 
-  private removeSolidTypeToManifest(typeId: string): void {
+  private removeSolidTypeToManifest(id: string): void {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const idx = manifest.types.findIndex((tt) => tt.id === typeId);
+    const idx = manifest.typePackages.findIndex((tt) => tt.id === id);
     if (idx > -1) {
-      manifest.types.splice(idx, 1);
+      manifest.typePackages.splice(idx, 1);
       writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), {
         flag: 'w'
       });
