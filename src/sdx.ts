@@ -5,21 +5,12 @@ import './polyfills.js';
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { rm, writeFile } from 'fs/promises';
-import { dirname } from 'path';
-import {
-  ERROR,
-  PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
-  PATH_SDX_GENERATE_SHACL_FOLDER,
-  TEST_COMPLEX_SHACL_FILE_PATH,
-  TEST_GRAPHQL_FILE_PATH
-} from './constants.js';
+import { rm } from 'fs/promises';
+import { ERROR, PATH_SDX_GENERATE_GRAPHQL_SCHEMA } from './constants.js';
 import { ProjectService } from './services/project.service.js';
-import { SchemaPrinterService } from './services/schema-printer.service.js';
 import { SearchService } from './services/search.service.js';
-import { ShaclParserService } from './services/shacl-parser.service.js';
-import { TypeGeneratorService } from './services/type-generator.service.js';
-import { SOLID_PURPLE, ensureDir } from './util.js';
+import { GeneratorService } from './services/generator.service.js';
+import { SOLID_PURPLE } from './util.js';
 import { LIB_VERSION } from './version.js';
 
 // Remove warnings
@@ -28,9 +19,7 @@ import { LIB_VERSION } from './version.js';
 const program = new Command();
 const project = new ProjectService();
 const search = new SearchService();
-const parser = new ShaclParserService();
-const printer = new SchemaPrinterService();
-const typeGenerator = new TypeGeneratorService();
+const generator = new GeneratorService();
 
 const TODO = () => console.log('TODO: Implement this command');
 
@@ -158,14 +147,14 @@ generateCommand
   .description(
     'Generate or update a GraphQL schema from the installed type packages.'
   )
-  .action(TODO);
+  .action(async () => await fireSchemasChanged());
 
 // generate types
 generateCommand
   .command('types')
   .alias('typings')
   .description('Generate or update typings for the installed type packages.')
-  .action(TODO);
+  .action(async () => await generator.generateTypings());
 
 // generate sdk
 generateCommand
@@ -174,80 +163,19 @@ generateCommand
   .description(
     'Generate or update an SDK from the installed type packages and GraphQL queries.'
   )
-  .action(TODO);
-
-// const demoCommand = program
-//   .command('demo')
-//   .description('bundles all actions for the demo');
-
-// demoCommand
-//   .command('install')
-//   .argument(
-//     '<schemaName>',
-//     'Name of the schema to install (adres, persoon, contact)'
-//   )
-//   .description('install a SHACL schema')
-//   .action(async (schemaName) => {
-//     // Install shacl schema
-//     await project.demoInstallSchema(schemaName);
-
-//     // Schemas were changed
-//     await fireSchemasChanged();
-//   });
-
-// demoCommand
-//   .command('uninstall')
-//   .argument(
-//     '<schemaName>',
-//     'Name of the schema to uninstall (adres, persoon, contact)'
-//   )
-//   .description('uninstall a SHACL schema')
-//   .action(async (schemaName) => {
-//     // Remove shacl schema
-//     await project.demoRemoveSchema(schemaName);
-
-//     // Schemas were changed
-//     await fireSchemasChanged();
-//   });
-
-// program
-//   .command('generate')
-//   .description('generate a graphql schema from the TTL')
-//   .action(async () => {
-//     const schema = await parser.parseSHACL(TEST_COMPLEX_SHACL_FILE_PATH);
-//     // Write schema to file
-//     ensureDir(dirname(TEST_GRAPHQL_FILE_PATH)).then(() =>
-//       writeFile(TEST_GRAPHQL_FILE_PATH, printer.printSchema(schema), {
-//         flag: 'w'
-//       })
-//     );
-//   });
-
-// program
-//   .command('typings')
-//   .description('generate types form the schema')
-//   .action(async () => {
-//     await typeGenerator.generateTypes(TEST_GRAPHQL_FILE_PATH);
-//   });
+  .action(async () => await generator.generateTypingsOrSdk());
 
 program.parse(process.argv);
 
 async function fireSchemasChanged(): Promise<void> {
   try {
-    // Generate graphql schema
-    const schema = await parser.parseSHACL(PATH_SDX_GENERATE_SHACL_FOLDER, [
-      'index.json'
-    ]);
-    await ensureDir(dirname(PATH_SDX_GENERATE_GRAPHQL_SCHEMA));
-    await writeFile(
-      PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
-      printer.printSchema(schema),
-      { flag: 'w' }
-    );
+    await generator.generateGraphqlSchema();
+    await generator.generateTypingsOrSdk();
 
     // Generate types
     // await typeGenerator.generateTypes(PATH_SDX_GRAPHQL_SCHEMA);
-    await typeGenerator.generateTypesAndMore(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
+    // TODO: ONLY WHEN QUERIES ARE THERE
+    // await generator.generateTypesAndMore(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
   } catch (err: any) {
     if (err === ERROR.NO_SHACL_SCHEMAS) {
       // Remove schema

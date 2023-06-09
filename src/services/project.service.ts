@@ -21,6 +21,7 @@ import { noResults, SOLID_PURPLE } from '../util.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
 import { SearchService } from './search.service.js';
+import { GeneratorService } from './generator.service.js';
 
 // const require = createRequire(import.meta.url);
 @autoInjectable()
@@ -29,7 +30,8 @@ export class ProjectService {
   constructor(
     private backend?: BackendService,
     private search?: SearchService,
-    private cache?: CacheService
+    private cache?: CacheService,
+    private generator?: GeneratorService
   ) {}
 
   /**
@@ -81,6 +83,7 @@ export class ProjectService {
     ]).subscribe(([typePackage, scheme]) => {
       this.saveSolidTypeToManifest(typePackage);
       this.storeSchemeToDisk(iri, scheme);
+      this.generator!.generateGraphqlSchema();
     });
   }
 
@@ -98,6 +101,7 @@ export class ProjectService {
 
     this.removeSchemeFromDisk(iri);
     this.removeSolidTypeToManifest(iri);
+    this.generator!.generateGraphqlSchema();
   }
 
   /**
@@ -138,7 +142,7 @@ export class ProjectService {
         return;
       }
     }
-    this.generateIndex();
+    // this.generateIndex();
   }
 
   private storeSchemeToDisk(id: string, scheme: string) {
@@ -147,7 +151,7 @@ export class ProjectService {
     }
     const filePath = PATH_SDX_GENERATE_SHACL_FOLDER + '/' + this.hash(id);
     writeFileSync(filePath, scheme);
-    this.generateIndex();
+    // this.generateIndex();
   }
 
   private hash(msg: string): string {
@@ -186,6 +190,9 @@ export class ProjectService {
     }
   }
 
+  /**
+   * @deprecated Should no longer be necessary
+   */
   private generateIndex() {
     const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
     const content = {

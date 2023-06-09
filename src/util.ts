@@ -113,3 +113,10 @@ export function printQuads(quads: Quad[] | Store, label?: string) {
     console.log(`[${q.subject.value} ${q.predicate.value} ${q.object.value}]`)
   );
 }
+
+/**
+ * Replace fieldName characters that are illegal by underscores
+ */
+export function cleanseName(fieldName: string): string {
+  return fieldName.replace(/[^_a-zA-Z]/g, '_');
+}
