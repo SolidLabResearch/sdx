@@ -6,12 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.3.0 - 2023-06-12
 ### Added
 - Test cases added for generation of GraphQL Schema from SHACL.
-
-### Removed
-- Trivial test case was removed, in favor of actual test cases.
 
 ### Changed
 - The `lib` folder content was pulled up a directory.
 - The `model` package is now at the root level.
+
+### Removed
+- Trivial test case was removed, in favor of actual test cases.
