@@ -2,7 +2,10 @@ import { SdxConfig, SolidManifest } from './types.js';
 
 export const DEFAULT_SDX_CONFIG: SdxConfig = {
   formatVersion: '1.0.0',
-  repositories: []
+  repositories: [],
+  options: {
+    autoGenerate: true
+  }
 };
 
 export const DEFAULT_SOLID_MANIFEST: SolidManifest = {

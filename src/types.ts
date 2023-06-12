@@ -7,11 +7,13 @@ export interface InitOptions {
 export interface SdxConfig {
   formatVersion: string;
   repositories: SdxRepository[];
-  options?: SdxConfigOptions;
+  options: SdxConfigOptions;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface SdxConfigOptions {}
+export interface SdxConfigOptions {
+  /** Trigger autogeneration of GraphQL schema and SDK on (un)installing shacl shapes etc.*/
+  autoGenerate: boolean;
+}
 
 export interface SolidManifest {
   formatVersion: string;

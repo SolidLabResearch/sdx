@@ -5,6 +5,7 @@ import { generate } from '@graphql-codegen/cli';
 import { codegen } from '@graphql-codegen/core';
 import {
   appendFile,
+  lstat,
   readFile,
   readdir,
   rm,
@@ -30,13 +31,15 @@ import chalk from 'chalk';
 import { SOLID_WARN, ensureDir } from '../util.js';
 import { dirname } from 'path';
 import { SchemaPrinterService } from './schema-printer.service.js';
+import { ConfigService } from './config.service.js';
 
 @singleton()
 @autoInjectable()
 export class GeneratorService {
   constructor(
     private parser?: ShaclParserService,
-    private printer?: SchemaPrinterService
+    private printer?: SchemaPrinterService,
+    private config?: ConfigService
   ) {}
 
   /**
@@ -55,11 +58,14 @@ export class GeneratorService {
         this.printer!.printSchema(schema),
         { flag: 'w' }
       );
+      // Trigger auto-generate
+      this.notify({ schemaChanged: true });
     } catch (err: any) {
       if (err === ERROR.NO_SHACL_SCHEMAS) {
         // Remove schema
         try {
           await rm(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
+          this.notify({ schemaChanged: true });
         } catch {
           /* Ignore */
         }
@@ -106,6 +112,7 @@ export class GeneratorService {
           `Warning: No GraphQL Schema found (try installing a type package first)`
         )
       );
+      await this.removeGeneratedSdk();
       return;
     }
     // Check for queries directory
@@ -171,45 +178,36 @@ export class GeneratorService {
     );
   }
 
-  // async generateTypes(schemaPath: PathLike): Promise<void> {
-  //   const schema = parse((await readFile(schemaPath)).toString());
-  //   const query = parse(
-  //     (await readFile(`src/graphql/query.graphql`)).toString()
-  //   );
+  async notify(event: ChangeEvent): Promise<void> {
+    const sdxConfig = await this.config!.getSdxConfig();
+    if (sdxConfig.options.autoGenerate) {
+      if (event.shaclChanged) {
+        await this.generateGraphqlSchema();
+      }
 
-  //   const config = {
-  //     documents: [{ document: query }],
-  //     config: {},
-  //     filename: `${PATH_SDX_TYPES_FOLDER}/index.d.ts`,
-  //     schema,
-  //     plugins: [
-  //       {
-  //         typescript: {
-  //           noExport: true
-  //         }
-  //       },
-  //       {
-  //         typescriptOperations: {
-  //           noExport: true
-  //         }
-  //       },
-  //       {
-  //         typescriptGenericSdk: {
-  //           noExport: true
-  //         }
-  //       }
-  //     ],
-  //     pluginMap: {
-  //       typescript: typescriptPlugin,
-  //       typescriptOperations: typescriptOperationsPlugin,
-  //       typescriptGenericSdk: typescriptGenericSdkPlugin
-  //     }
-  //   };
-  //   try {
-  //     const output = await codegen(config as any);
-  //     return writeFile(`${PATH_SDX_TYPES_FOLDER}/index.d.ts`, output, 'utf8');
-  //   } catch (err: any) {
-  //     console.log(err);
-  //   }
-  // }
+      if (event.schemaChanged || event.queriesChanged) {
+        await this.generateTypingsOrSdk();
+      }
+    }
+  }
+
+  /**
+   * Try to remove the generated SDK.
+   */
+  private async removeGeneratedSdk(): Promise<void> {
+    try {
+      const path = await lstat(PATH_SDX_GENERATE_SDK);
+      if (path.isFile()) {
+        await rm(PATH_SDX_GENERATE_SDK);
+      }
+    } catch {
+      /* Ignore */
+    }
+  }
+}
+
+export interface ChangeEvent {
+  shaclChanged?: boolean;
+  schemaChanged?: boolean;
+  queriesChanged?: boolean;
 }

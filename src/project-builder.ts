@@ -12,7 +12,6 @@ import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from './templates.js';
 import { InitOptions } from './types.js';
 import { SOLID_PURPLE, SOLID_WARN } from './util.js';
 import { cwd } from 'process';
-import { last } from 'rxjs/operators';
 import path from 'path';
 
 export class ProjectBuilder {
@@ -110,7 +109,7 @@ export class ProjectBuilder {
     this.logPurple('Writing .sdxconfig ...');
     const path = folder ? `${folder}/${PATH_SDX_CONFIG}` : PATH_SDX_CONFIG;
     try {
-      writeFileSync(path, JSON.stringify(path, null, 4));
+      writeFileSync(path, JSON.stringify(DEFAULT_SDX_CONFIG, null, 4));
     } catch {
       throw new Error(`Error while writing ${path} to the filesystem.`);
     }

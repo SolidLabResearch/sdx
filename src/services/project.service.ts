@@ -8,7 +8,6 @@ import {
   rmSync,
   writeFileSync
 } from 'fs';
-import { forkJoin } from 'rxjs';
 import { autoInjectable, singleton } from 'tsyringe';
 import {
   DEMO_POD_SCHEMAS_URI,
@@ -20,7 +19,6 @@ import { InitOptions, SolidManifest, SolidTypePackage } from '../types.js';
 import { noResults, SOLID_PURPLE } from '../util.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
-import { SearchService } from './search.service.js';
 import { GeneratorService } from './generator.service.js';
 
 // const require = createRequire(import.meta.url);
@@ -29,7 +27,6 @@ import { GeneratorService } from './generator.service.js';
 export class ProjectService {
   constructor(
     private backend?: BackendService,
-    private search?: SearchService,
     private cache?: CacheService,
     private generator?: GeneratorService
   ) {}
@@ -64,7 +61,7 @@ export class ProjectService {
     console.table(results);
   }
 
-  installTypePackage(iriOrIdx: string): void {
+  async installTypePackage(iriOrIdx: string): Promise<void> {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
@@ -77,14 +74,14 @@ export class ProjectService {
     console.log(chalk.hex(SOLID_PURPLE)(`Installing type package ${iri}`));
 
     const id = encodeURIComponent(iri);
-    forkJoin([
+    const [typePackage, scheme] = await Promise.all([
       this.backend!.getTypePackage(id),
       this.backend!.getTypePackageShacl(id)
-    ]).subscribe(([typePackage, scheme]) => {
-      this.saveSolidTypeToManifest(typePackage);
-      this.storeSchemeToDisk(iri, scheme);
-      this.generator!.generateGraphqlSchema();
-    });
+    ]);
+
+    this.saveSolidTypeToManifest(typePackage);
+    this.storeSchemeToDisk(iri, scheme);
+    this.generator!.notify({ shaclChanged: true });
   }
 
   unInstallTypePackage(iriOrIdx: string): void {
@@ -101,33 +98,33 @@ export class ProjectService {
 
     this.removeSchemeFromDisk(iri);
     this.removeSolidTypeToManifest(iri);
-    this.generator!.generateGraphqlSchema();
+    this.generator!.notify({ shaclChanged: true });
   }
 
-  /**
-   *
-   * @deprecated For demo purpose only
-   */
-  async demoInstallSchema(schemaName: string): Promise<void> {
-    const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
-    try {
-      const schema = await this.backend!.demoDownloadSchema(iri);
-      console.log(chalk.hex(SOLID_PURPLE)(`Installing schema ${iri}`));
-      this.storeSchemeToDisk(iri, schema);
-    } catch (err: any) {
-      console.log(chalk.redBright(`Could not install schema (${err})`));
-    }
-  }
+  // /**
+  //  *
+  //  * @deprecated For demo purpose only
+  //  */
+  // async demoInstallSchema(schemaName: string): Promise<void> {
+  //   const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
+  //   try {
+  //     const schema = await this.backend!.demoDownloadSchema(iri);
+  //     console.log(chalk.hex(SOLID_PURPLE)(`Installing schema ${iri}`));
+  //     this.storeSchemeToDisk(iri, schema);
+  //   } catch (err: any) {
+  //     console.log(chalk.redBright(`Could not install schema (${err})`));
+  //   }
+  // }
 
-  /**
-   *
-   * @deprecated For demo purpose only
-   */
-  async demoRemoveSchema(schemaName: string): Promise<void> {
-    const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
-    console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling schema ${iri}`));
-    this.removeSchemeFromDisk(iri);
-  }
+  // /**
+  //  *
+  //  * @deprecated For demo purpose only
+  //  */
+  // async demoRemoveSchema(schemaName: string): Promise<void> {
+  //   const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
+  //   console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling schema ${iri}`));
+  //   this.removeSchemeFromDisk(iri);
+  // }
 
   private removeSchemeFromDisk(id: string) {
     if (!existsSync(PATH_SDX_GENERATE_SHACL_FOLDER)) {
@@ -190,19 +187,19 @@ export class ProjectService {
     }
   }
 
-  /**
-   * @deprecated Should no longer be necessary
-   */
-  private generateIndex() {
-    const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
-    const content = {
-      entries: fileNames.filter((name) => name !== 'index.json')
-    };
-    console.log(content);
-    writeFileSync(
-      `${PATH_SDX_GENERATE_SHACL_FOLDER}/index.json`,
-      JSON.stringify(content, null, 4),
-      { flag: 'w' }
-    );
-  }
+  // /**
+  //  * @deprecated Should no longer be necessary
+  //  */
+  // private generateIndex() {
+  //   const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
+  //   const content = {
+  //     entries: fileNames.filter((name) => name !== 'index.json')
+  //   };
+  //   console.log(content);
+  //   writeFileSync(
+  //     `${PATH_SDX_GENERATE_SHACL_FOLDER}/index.json`,
+  //     JSON.stringify(content, null, 4),
+  //     { flag: 'w' }
+  //   );
+  // }
 }

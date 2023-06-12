@@ -166,17 +166,3 @@ generateCommand
   .action(async () => await generator.generateTypingsOrSdk());
 
 program.parse(process.argv);
-
-async function fireSchemasChanged(): Promise<void> {
-  try {
-    await generator.generateGraphqlSchema();
-    await generator.generateTypingsOrSdk();
-
-    // Generate types
-    // await typeGenerator.generateTypes(PATH_SDX_GRAPHQL_SCHEMA);
-    // TODO: ONLY WHEN QUERIES ARE THERE
-    // await generator.generateTypesAndMore(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
-  } catch (err: any) {
-    console.log(err);
-  }
-}
