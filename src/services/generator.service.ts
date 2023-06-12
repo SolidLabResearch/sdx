@@ -3,9 +3,17 @@ import { autoInjectable, singleton } from 'tsyringe';
 
 import { generate } from '@graphql-codegen/cli';
 import { codegen } from '@graphql-codegen/core';
-import { appendFile, readFile, readdir, stat, writeFile } from 'fs/promises';
+import {
+  appendFile,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile
+} from 'fs/promises';
 import { GraphQLSchema, parse } from 'graphql';
 import {
+  ERROR,
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
   PATH_SDX_GENERATE_SDK,
   PATH_SDX_GENERATE_SHACL_FOLDER,
@@ -35,17 +43,28 @@ export class GeneratorService {
    * Generate the graphql schema from the SHACL files
    */
   async generateGraphqlSchema(): Promise<void> {
-    // Generate graphql schema
-    const schema = await this.parser!.parseSHACL(
-      PATH_SDX_GENERATE_SHACL_FOLDER,
-      ['index.json']
-    );
-    await ensureDir(dirname(PATH_SDX_GENERATE_GRAPHQL_SCHEMA));
-    await writeFile(
-      PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
-      this.printer!.printSchema(schema),
-      { flag: 'w' }
-    );
+    try {
+      // Generate graphql schema
+      const schema = await this.parser!.parseSHACL(
+        PATH_SDX_GENERATE_SHACL_FOLDER,
+        ['index.json']
+      );
+      await ensureDir(dirname(PATH_SDX_GENERATE_GRAPHQL_SCHEMA));
+      await writeFile(
+        PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
+        this.printer!.printSchema(schema),
+        { flag: 'w' }
+      );
+    } catch (err: any) {
+      if (err === ERROR.NO_SHACL_SCHEMAS) {
+        // Remove schema
+        try {
+          await rm(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
+        } catch {
+          /* Ignore */
+        }
+      }
+    }
   }
 
   /**
@@ -78,12 +97,23 @@ export class GeneratorService {
   async generateTypingsOrSdk(
     schemaPath: PathLike = PATH_SDX_GENERATE_GRAPHQL_SCHEMA
   ): Promise<void> {
+    // Abort if no schema
+    try {
+      await stat(schemaPath);
+    } catch (err: any) {
+      console.log(
+        chalk.hex(SOLID_WARN)(
+          `Warning: No GraphQL Schema found (try installing a type package first)`
+        )
+      );
+      return;
+    }
     // Check for queries directory
-    let statQuery = null;
+    let statQuery;
     try {
       statQuery = await stat(PATH_SRC_GRAPHQL_QUERIES);
-    } catch {
-      // do nothing
+    } catch (err: any) {
+      statQuery = null;
     }
     const documents =
       (statQuery &&
@@ -96,7 +126,7 @@ export class GeneratorService {
       // Warn no queries
       console.log(
         chalk.hex(SOLID_WARN)(
-          `Warning: No GraphQL queries found! (create *.graphql files inside the '${PATH_SRC_GRAPHQL_QUERIES}' folder to also generate an SDK)`
+          `Warning: No GraphQL queries found! (create *.graphql files inside the '${PATH_SRC_GRAPHQL_QUERIES}' folder to also generate an SDK Client)`
         )
       );
       // Generate only typings

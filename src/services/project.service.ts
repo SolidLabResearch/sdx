@@ -111,7 +111,7 @@ export class ProjectService {
   async demoInstallSchema(schemaName: string): Promise<void> {
     const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
     try {
-      const schema = await this.backend!.demoDownloadSchema(iri).toPromise();
+      const schema = await this.backend!.demoDownloadSchema(iri);
       console.log(chalk.hex(SOLID_PURPLE)(`Installing schema ${iri}`));
       this.storeSchemeToDisk(iri, schema);
     } catch (err: any) {

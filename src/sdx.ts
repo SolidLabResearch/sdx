@@ -147,7 +147,7 @@ generateCommand
   .description(
     'Generate or update a GraphQL schema from the installed type packages.'
   )
-  .action(async () => await fireSchemasChanged());
+  .action(async () => await generator.generateGraphqlSchema());
 
 // generate types
 generateCommand
@@ -177,10 +177,6 @@ async function fireSchemasChanged(): Promise<void> {
     // TODO: ONLY WHEN QUERIES ARE THERE
     // await generator.generateTypesAndMore(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
   } catch (err: any) {
-    if (err === ERROR.NO_SHACL_SCHEMAS) {
-      // Remove schema
-      await rm(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
-    }
     console.log(err);
   }
 }

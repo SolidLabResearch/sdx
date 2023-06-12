@@ -102,7 +102,6 @@ export class ShaclParserService {
     if (stat.isDirectory() && (await readdir(path)).length === 0) {
       throw ERROR.NO_SHACL_SCHEMAS;
     }
-
     const parsePath = async (pathLike: PathLike): Promise<Quad[]> => {
       if (ingoreFileNames.includes(pathLike.toString())) {
         return [];
