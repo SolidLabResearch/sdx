@@ -28,6 +28,7 @@ export function noResults(extraPhrase?: string): void {
 }
 
 export const SOLID_PURPLE = '#7C4DFF';
+export const SOLID_WARN = '#FF6700';
 
 /**
  * Recursively create a directory at the given `path`.
@@ -111,4 +112,11 @@ export function printQuads(quads: Quad[] | Store, label?: string) {
   q.forEach((q) =>
     console.log(`[${q.subject.value} ${q.predicate.value} ${q.object.value}]`)
   );
+}
+
+/**
+ * Replace fieldName characters that are illegal by underscores
+ */
+export function cleanseName(fieldName: string): string {
+  return fieldName.replace(/[^_a-zA-Z]/g, '_');
 }

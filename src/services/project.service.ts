@@ -8,19 +8,18 @@ import {
   rmSync,
   writeFileSync
 } from 'fs';
-import { forkJoin } from 'rxjs';
 import { autoInjectable, singleton } from 'tsyringe';
 import {
   DEMO_POD_SCHEMAS_URI,
   PATH_SDX_GENERATE_SHACL_FOLDER,
   PATH_SOLID_MANIFEST
 } from '../constants.js';
-import { InitOptions, SolidManifest, SolidType } from '../types.js';
+import { ProjectBuilder } from '../project-builder.js';
+import { InitOptions, SolidManifest, SolidTypePackage } from '../types.js';
 import { noResults, SOLID_PURPLE } from '../util.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
-import { SearchService } from './search.service.js';
-import { ProjectBuilder } from '../project-builder.js';
+import { GeneratorService } from './generator.service.js';
 
 // const require = createRequire(import.meta.url);
 @autoInjectable()
@@ -28,92 +27,104 @@ import { ProjectBuilder } from '../project-builder.js';
 export class ProjectService {
   constructor(
     private backend?: BackendService,
-    private search?: SearchService,
-    private cache?: CacheService
+    private cache?: CacheService,
+    private generator?: GeneratorService
   ) {}
 
-  async initProject(options: InitOptions): Promise<void> {
-    new ProjectBuilder().initProject(options);
+  /**
+   * Initialise a new project.
+   * This sets up all necessary files and directories, including the package.json if it is not present.
+   * @param options
+   */
+  async initProject(
+    name: string | undefined,
+    options: InitOptions
+  ): Promise<void> {
+    new ProjectBuilder().initProject(name, options);
   }
 
-  listTypes(): any {
+  listTypePackages(): any {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const results = Object.values(manifest.types).map(({ name, id }) => ({
-      name,
-      id
-    }));
+    const results = Object.values(manifest.typePackages).map(
+      ({ name, id }) => ({
+        name,
+        id
+      })
+    );
     if (results.length === 0) {
       noResults();
       return;
     }
-    this.cache?.storeListToCache<Partial<SolidType>>(results);
+    this.cache?.storeListToCache<Partial<SolidTypePackage>>(results);
     console.table(results);
   }
 
-  installType(iriOrIdx: string): void {
+  async installTypePackage(iriOrIdx: string): Promise<void> {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
-      iri = this.cache!.readListFromCache<SolidType>()[idx].id!;
+      iri = this.cache!.readListFromCache<SolidTypePackage>()[idx].id!;
     }
     if (!iri) {
       console.error('A type with that index cannot be found!');
     }
 
-    console.log(chalk.hex(SOLID_PURPLE)(`Installing type ${iri}`));
+    console.log(chalk.hex(SOLID_PURPLE)(`Installing type package ${iri}`));
 
     const id = encodeURIComponent(iri);
-    forkJoin([
-      this.backend!.getType(id),
-      this.backend!.getTypeScheme(id)
-    ]).subscribe(([type, scheme]) => {
-      this.saveSolidTypeToManifest(type);
-      this.storeSchemeToDisk(iri, scheme);
-    });
+    const [typePackage, scheme] = await Promise.all([
+      this.backend!.getTypePackage(id),
+      this.backend!.getTypePackageShacl(id)
+    ]);
+
+    this.saveSolidTypeToManifest(typePackage);
+    this.storeSchemeToDisk(iri, scheme);
+    this.generator!.notify({ shaclChanged: true });
   }
 
-  unInstallType(iriOrIdx: string): void {
+  unInstallTypePackage(iriOrIdx: string): void {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
-      iri = this.cache!.readListFromCache<SolidType>()[idx].id!;
+      iri = this.cache!.readListFromCache<SolidTypePackage>()[idx].id!;
     }
     if (!iri) {
       console.error('A type with that index cannot be found!');
     }
 
-    console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling type ${iri}`));
+    console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling type package ${iri}`));
 
     this.removeSchemeFromDisk(iri);
     this.removeSolidTypeToManifest(iri);
+    this.generator!.notify({ shaclChanged: true });
   }
 
-  /**
-   *
-   * @deprecated For demo purpose only
-   */
-  async demoInstallSchema(schemaName: string): Promise<void> {
-    const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
-    try {
-      const schema = await this.backend!.demoDownloadSchema(iri).toPromise();
-      console.log(chalk.hex(SOLID_PURPLE)(`Installing schema ${iri}`));
-      this.storeSchemeToDisk(iri, schema);
-    } catch (err: any) {
-      console.log(chalk.redBright(`Could not install schema (${err})`));
-    }
-  }
+  // /**
+  //  *
+  //  * @deprecated For demo purpose only
+  //  */
+  // async demoInstallSchema(schemaName: string): Promise<void> {
+  //   const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
+  //   try {
+  //     const schema = await this.backend!.demoDownloadSchema(iri);
+  //     console.log(chalk.hex(SOLID_PURPLE)(`Installing schema ${iri}`));
+  //     this.storeSchemeToDisk(iri, schema);
+  //   } catch (err: any) {
+  //     console.log(chalk.redBright(`Could not install schema (${err})`));
+  //   }
+  // }
 
-  /**
-   *
-   * @deprecated For demo purpose only
-   */
-  async demoRemoveSchema(schemaName: string): Promise<void> {
-    const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
-    console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling schema ${iri}`));
-    this.removeSchemeFromDisk(iri);
-  }
+  // /**
+  //  *
+  //  * @deprecated For demo purpose only
+  //  */
+  // async demoRemoveSchema(schemaName: string): Promise<void> {
+  //   const iri = `${DEMO_POD_SCHEMAS_URI}/${schemaName}.ttl`;
+  //   console.log(chalk.hex(SOLID_PURPLE)(`Uninstalling schema ${iri}`));
+  //   this.removeSchemeFromDisk(iri);
+  // }
 
   private removeSchemeFromDisk(id: string) {
     if (!existsSync(PATH_SDX_GENERATE_SHACL_FOLDER)) {
@@ -128,7 +139,7 @@ export class ProjectService {
         return;
       }
     }
-    this.generateIndex();
+    // this.generateIndex();
   }
 
   private storeSchemeToDisk(id: string, scheme: string) {
@@ -137,7 +148,7 @@ export class ProjectService {
     }
     const filePath = PATH_SDX_GENERATE_SHACL_FOLDER + '/' + this.hash(id);
     writeFileSync(filePath, scheme);
-    this.generateIndex();
+    // this.generateIndex();
   }
 
   private hash(msg: string): string {
@@ -146,44 +157,49 @@ export class ProjectService {
     return sha.digest('hex');
   }
 
-  private saveSolidTypeToManifest(type: SolidType): void {
+  private saveSolidTypeToManifest(typePackage: SolidTypePackage): void {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const idx = manifest.types.findIndex((tt) => tt.id === type.id);
+    const idx = manifest.typePackages.findIndex(
+      (tt) => tt.id === typePackage.id
+    );
     if (idx > -1) {
-      manifest.types[idx] = type;
+      manifest.typePackages[idx] = typePackage;
     } else {
-      manifest.types.push(type);
+      manifest.typePackages.push(typePackage);
     }
     writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), {
       flag: 'w'
     });
   }
 
-  private removeSolidTypeToManifest(typeId: string): void {
+  private removeSolidTypeToManifest(id: string): void {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const idx = manifest.types.findIndex((tt) => tt.id === typeId);
+    const idx = manifest.typePackages.findIndex((tt) => tt.id === id);
     if (idx > -1) {
-      manifest.types.splice(idx, 1);
+      manifest.typePackages.splice(idx, 1);
       writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), {
         flag: 'w'
       });
     }
   }
 
-  private generateIndex() {
-    const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
-    const content = {
-      entries: fileNames.filter((name) => name !== 'index.json')
-    };
-    console.log(content);
-    writeFileSync(
-      `${PATH_SDX_GENERATE_SHACL_FOLDER}/index.json`,
-      JSON.stringify(content, null, 4),
-      { flag: 'w' }
-    );
-  }
+  // /**
+  //  * @deprecated Should no longer be necessary
+  //  */
+  // private generateIndex() {
+  //   const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
+  //   const content = {
+  //     entries: fileNames.filter((name) => name !== 'index.json')
+  //   };
+  //   console.log(content);
+  //   writeFileSync(
+  //     `${PATH_SDX_GENERATE_SHACL_FOLDER}/index.json`,
+  //     JSON.stringify(content, null, 4),
+  //     { flag: 'w' }
+  //   );
+  // }
 }

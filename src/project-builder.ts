@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import prompts, { PromptObject } from 'prompts';
 import {
   PATH_PACKAGE_JSON,
@@ -10,43 +10,76 @@ import {
 } from './constants.js';
 import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from './templates.js';
 import { InitOptions } from './types.js';
-import { SOLID_PURPLE } from './util.js';
+import { SOLID_PURPLE, SOLID_WARN } from './util.js';
+import { cwd } from 'process';
+import path from 'path';
 
 export class ProjectBuilder {
-  async initProject(options: InitOptions): Promise<void> {
+  /**
+   * Interactively initialize a new project.
+   * @param name Name of the project (creates folder with that name in current directory)
+   * @param options Options
+   */
+  async initProject(
+    name: string | undefined,
+    options: InitOptions
+  ): Promise<void> {
     // Gather inputs
-    this.logPurple('Initializing workspace, first some questions ...');
-    const skipPackageJson = this.packageJsonExists() && !options.force;
-    const inputs = await this.promptInput(skipPackageJson);
+    const skipPackageJson = this.packageJsonExists(name) && !options.force;
 
-    // .solidmanifest
-    this.logPurple('Writing .solidmanifest ...');
-    this.initSolidManifest(inputs);
+    this.logPurple('Initializing workspace, first some questions ...');
+
+    if (skipPackageJson) {
+      this.logWarning(
+        'Existing package.json found: workspace initialisation aborted! (override with --force)'
+      );
+      return;
+    }
+
+    const inputs = await this.promptInput(skipPackageJson, name);
+
+    // Create directory if not exists and set
+    if (name) {
+      if (!existsSync(name)) {
+        mkdirSync(name);
+      }
+    }
+
+    // .solidmanifestc
+    this.initSolidManifest(inputs, name);
 
     // .sdxconfig
-    this.logPurple('Writing .sdxconfig ...');
-    this.initSdxConfig();
+    this.initSdxConfig(name);
 
     // Create types folder
-    this.logPurple('Creating sdx-types folder ...');
-    this.initSdxTypesFolder();
+    this.initSdxTypesFolder(name);
 
     // If no package.json, then create one
-    this.initPackageJson(skipPackageJson, inputs);
+    this.initPackageJson(skipPackageJson, inputs, name);
+
+    // Install libraries
+    if (!options.noLibs) {
+      this.installLibraries(name);
+    }
 
     this.logPurple('Successfully set up workspace!');
     chalk.reset();
   }
 
-  private async promptInput(skipPackageJson: boolean) {
-    const questions: PromptObject<string>[] = [
-      {
-        type: 'text',
-        name: 'projectName',
-        message: 'What is the name of your project?',
-        initial: 'my-solid-app'
-      }
-    ];
+  private async promptInput(skipPackageJson: boolean, name?: string) {
+    const nameIsDot = name === '.' || name === './' || name === '.\\';
+    const dirName = cwd().substring(cwd().lastIndexOf(path.sep) + 1);
+    const questions: PromptObject<string>[] =
+      name && !nameIsDot
+        ? []
+        : [
+            {
+              type: 'text',
+              name: 'projectName',
+              message: 'What is the name of your project?',
+              initial: nameIsDot ? dirName : 'my-solid-app'
+            }
+          ];
 
     if (!skipPackageJson) {
       questions.push(
@@ -72,82 +105,108 @@ export class ProjectBuilder {
     return prompts(questions);
   }
 
-  private initSdxConfig() {
+  private initSdxConfig(folder?: string) {
+    this.logPurple('Writing .sdxconfig ...');
+    const path = folder ? `${folder}/${PATH_SDX_CONFIG}` : PATH_SDX_CONFIG;
     try {
-      writeFileSync(
-        PATH_SDX_CONFIG,
-        JSON.stringify(DEFAULT_SDX_CONFIG, null, 4)
-      );
+      writeFileSync(path, JSON.stringify(DEFAULT_SDX_CONFIG, null, 4));
     } catch {
-      throw new Error(
-        `Error while writing ${PATH_SDX_CONFIG} to the filesystem.`
-      );
+      throw new Error(`Error while writing ${path} to the filesystem.`);
     }
   }
 
-  private initSolidManifest(inputs: any) {
+  private initSolidManifest(inputs: any, folder?: string) {
+    this.logPurple('Writing .solidmanifest ...');
+    const path = folder
+      ? `${folder}/${PATH_SOLID_MANIFEST}`
+      : PATH_SOLID_MANIFEST;
     try {
       const manifest = DEFAULT_SOLID_MANIFEST;
       manifest.name = inputs.projectName;
       manifest.author = inputs.author;
       manifest.license = inputs.license;
-      writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4));
+      writeFileSync(path, JSON.stringify(manifest, null, 4));
     } catch {
-      throw new Error(
-        `Error while writing ${PATH_SDX_CONFIG} to the filesystem.`
-      );
+      throw new Error(`Error while writing ${path} to the filesystem.`);
     }
   }
 
-  private initSdxTypesFolder() {
+  private initSdxTypesFolder(folder?: string) {
+    this.logPurple('Creating sdx-types folder ...');
+    const path = folder
+      ? `${folder}/${PATH_SDX_TYPES_FOLDER}`
+      : PATH_SDX_TYPES_FOLDER;
     try {
-      mkdirSync(PATH_SDX_TYPES_FOLDER);
+      mkdirSync(path, { recursive: true });
     } catch {
       // Do nothing
     }
   }
 
-  private initPackageJson(skipPackageJson: boolean, inputs: any) {
-    if (skipPackageJson) {
-      console.log(
-        chalk.hex('#ff781f')(
-          'Existing package.json found, I am not touching it! (or use --force)'
-        )
-      );
-      return;
-    }
-
+  private initPackageJson(
+    skipPackageJson: boolean,
+    inputs: any,
+    folder?: string
+  ) {
+    const path = folder ? `${folder}/${PATH_PACKAGE_JSON}` : PATH_PACKAGE_JSON;
     try {
       this.logPurple('Writing package.json ...');
-      execSync('npm init -y');
-      const packageJson = JSON.parse(
-        readFileSync(PATH_PACKAGE_JSON).toString()
-      );
+      execSync(folder ? `cd ${folder} && npm init -y` : 'npm init -y');
+      const packageJson = JSON.parse(readFileSync(path).toString());
       packageJson['name'] = inputs.projectName;
       packageJson['description'] = inputs.description;
       packageJson['author'] = inputs.author;
       packageJson['license'] = inputs.license;
       packageJson['types'] = 'sdx-types/index.d.ts';
-      writeFileSync(PATH_PACKAGE_JSON, JSON.stringify(packageJson, null, 4), {
+      writeFileSync(path, JSON.stringify(packageJson, null, 4), {
         flag: 'w'
       });
     } catch {
-      throw new Error(
-        `Error while writing ${PATH_PACKAGE_JSON} to the filesystem.`
-      );
+      throw new Error(`Error while writing ${path} to the filesystem.`);
     }
   }
 
-  private packageJsonExists(): boolean {
+  private packageJsonExists(folder?: string): boolean {
+    const path = folder ? `${folder}/${PATH_PACKAGE_JSON}` : PATH_PACKAGE_JSON;
     try {
-      readFileSync(PATH_PACKAGE_JSON);
+      readFileSync(path);
       return true;
     } catch {
       return false;
     }
   }
 
+  private installLibraries(folder?: string) {
+    if (folder) {
+      execSync(`cd ${folder}`);
+    }
+    try {
+      this.logPurple('Installing @solidlab/sdx (local CLI tool)...');
+      execSync(
+        folder
+          ? `cd ${folder} && npm i -D @solidlab/sdx`
+          : 'npm i -D @solidlab/sdx'
+      );
+    } catch {
+      throw new Error(`Error while installing @solidlab/sdx!`);
+    }
+    try {
+      this.logPurple('Installing @solidlab/sdx-sdk (SDK library)...');
+      execSync(
+        folder
+          ? `cd ${folder} && npm i -S @solidlab/sdx-sdk`
+          : 'npm i -S @solidlab/sdx-sdk'
+      );
+    } catch {
+      throw new Error(`Error while installing @solidlab/sdx-sdk!`);
+    }
+  }
+
   private logPurple(text: string): void {
     console.log(chalk.hex(SOLID_PURPLE)(text));
+  }
+
+  private logWarning(text: string): void {
+    console.log(chalk.hex(SOLID_WARN)(text));
   }
 }

@@ -28,6 +28,7 @@ import { Shape } from '../model/shape.js';
 import { PropertyShape } from '../model/property-shape.js';
 import {
   capitalize,
+  cleanseName,
   decapitalize,
   isOrContainsObjectType,
   isOrContainsScalar,
@@ -101,7 +102,6 @@ export class ShaclParserService {
     if (stat.isDirectory() && (await readdir(path)).length === 0) {
       throw ERROR.NO_SHACL_SCHEMAS;
     }
-
     const parsePath = async (pathLike: PathLike): Promise<Quad[]> => {
       if (ingoreFileNames.includes(pathLike.toString())) {
         return [];
@@ -221,7 +221,10 @@ export class ShaclParserService {
         Object.entries(type.getFields())
           .filter(([_, field]) => isOrContainsScalar(field.type))
           .filter(([_, field]) => !isIdentifier(field))
-          .map(([name, field]) => [name, toInputField(field, mutationType)])
+          .map(([name, field]) => [
+            cleanseName(name),
+            toInputField(field, mutationType)
+          ])
       );
       if (mutationType === 'create') {
         fields = {
@@ -443,7 +446,7 @@ export class ShaclParserService {
         } else {
           return {
             ...prev,
-            [prop.name]: {
+            [cleanseName(prop.name)]: {
               type: applyMinMaxCount(prop, propType!),
               description: prop.description,
               extensions: {
