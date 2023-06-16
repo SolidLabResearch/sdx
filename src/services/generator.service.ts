@@ -2,25 +2,13 @@ import { PathLike } from 'fs';
 import { autoInjectable, singleton } from 'tsyringe';
 
 import { generate } from '@graphql-codegen/cli';
-import { codegen } from '@graphql-codegen/core';
-import {
-  appendFile,
-  lstat,
-  readFile,
-  readdir,
-  rm,
-  stat,
-  writeFile
-} from 'fs/promises';
-import { GraphQLSchema, parse } from 'graphql';
+import { appendFile, lstat, readdir, rm, stat, writeFile } from 'fs/promises';
 import {
   ERROR,
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
   PATH_SDX_GENERATE_SDK,
   PATH_SDX_GENERATE_SHACL_FOLDER,
-  PATH_SDX_TYPES_FOLDER,
-  PATH_SRC_GRAPHQL_QUERIES,
-  TEST_COMPLEX_SHACL_FILE_PATH
+  PATH_SRC_GRAPHQL_QUERIES
 } from '../constants.js';
 import { ShaclParserService } from './shacl-parser.service.js';
 

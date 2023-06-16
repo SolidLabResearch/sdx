@@ -5,8 +5,6 @@ import './polyfills.js';
 
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { rm } from 'fs/promises';
-import { ERROR, PATH_SDX_GENERATE_GRAPHQL_SCHEMA } from './constants.js';
 import { ProjectService } from './services/project.service.js';
 import { SearchService } from './services/search.service.js';
 import { GeneratorService } from './services/generator.service.js';
@@ -20,8 +18,6 @@ const program = new Command();
 const project = new ProjectService();
 const search = new SearchService();
 const generator = new GeneratorService();
-
-const TODO = () => console.log('TODO: Implement this command');
 
 // Main program
 program

@@ -5,7 +5,6 @@ import prompts, { PromptObject } from 'prompts';
 import {
   PATH_PACKAGE_JSON,
   PATH_SDX_CONFIG,
-  PATH_SDX_TYPES_FOLDER,
   PATH_SOLID_MANIFEST
 } from './constants.js';
 import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from './templates.js';
@@ -50,9 +49,6 @@ export class ProjectBuilder {
 
     // .sdxconfig
     this.initSdxConfig(name);
-
-    // Create types folder
-    this.initSdxTypesFolder(name);
 
     // If no package.json, then create one
     this.initPackageJson(skipPackageJson, inputs, name);
@@ -128,18 +124,6 @@ export class ProjectBuilder {
       writeFileSync(path, JSON.stringify(manifest, null, 4));
     } catch {
       throw new Error(`Error while writing ${path} to the filesystem.`);
-    }
-  }
-
-  private initSdxTypesFolder(folder?: string) {
-    this.logPurple('Creating sdx-types folder ...');
-    const path = folder
-      ? `${folder}/${PATH_SDX_TYPES_FOLDER}`
-      : PATH_SDX_TYPES_FOLDER;
-    try {
-      mkdirSync(path, { recursive: true });
-    } catch {
-      // Do nothing
     }
   }
 

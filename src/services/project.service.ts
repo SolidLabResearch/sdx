@@ -186,20 +186,4 @@ export class ProjectService {
       });
     }
   }
-
-  // /**
-  //  * @deprecated Should no longer be necessary
-  //  */
-  // private generateIndex() {
-  //   const fileNames = readdirSync(PATH_SDX_GENERATE_SHACL_FOLDER);
-  //   const content = {
-  //     entries: fileNames.filter((name) => name !== 'index.json')
-  //   };
-  //   console.log(content);
-  //   writeFileSync(
-  //     `${PATH_SDX_GENERATE_SHACL_FOLDER}/index.json`,
-  //     JSON.stringify(content, null, 4),
-  //     { flag: 'w' }
-  //   );
-  // }
 }
