@@ -33,7 +33,9 @@ jobs:
         run: npm test
 
       - name: Build smoke test
-        run: npm run build
+        run: |
+          npm run build:version
+          npm run build
         
       # Configure Git
       - name: Git configuration
