@@ -13,6 +13,10 @@ export interface SdxConfig {
 export interface SdxConfigOptions {
   /** Trigger autogeneration of GraphQL schema and SDK on (un)installing shacl shapes etc.*/
   autoGenerate: boolean;
+  clientCredentials?: {
+    id: string;
+    secret: string;
+  };
 }
 
 export interface SolidManifest {

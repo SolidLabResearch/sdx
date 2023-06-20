@@ -181,7 +181,8 @@ function printInput(type: GraphQLInputObjectType): string {
   const fields = Object.values(type.getFields());
   const lines = [];
   if (type.description) {
-    lines.push(`"${type.description}"`);
+    const quotes = /(\r\n|\r|\n)/.test(type.description) ? '"""' : '"';
+    lines.push(`${quotes}${type.description}${quotes}`);
   }
   let typeLine = `input ${type.toString()}`;
   if ('directives' in type.extensions) {
