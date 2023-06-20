@@ -132,7 +132,7 @@ function printType(type: GraphQLObjectType): string {
   const fields = Object.values(type.getFields());
   const lines = [];
   if (type.description) {
-    lines.push(`"${type.description}"`);
+    lines.push(quoteDescription(type.description));
   }
   let typeLine = `type ${type.toString()}`;
   if ('directives' in type.extensions) {
@@ -181,8 +181,7 @@ function printInput(type: GraphQLInputObjectType): string {
   const fields = Object.values(type.getFields());
   const lines = [];
   if (type.description) {
-    const quotes = /(\r\n|\r|\n)/.test(type.description) ? '"""' : '"';
-    lines.push(`${quotes}${type.description}${quotes}`);
+    lines.push(quoteDescription(type.description));
   }
   let typeLine = `input ${type.toString()}`;
   if ('directives' in type.extensions) {
@@ -211,7 +210,9 @@ function printField(
   // console.log('field', field.type, field)
   let result = '';
   if (field.description) {
-    result += `${INDENT}"${field.description}"${SINGLE_NEWLINE}`;
+    result += INDENT;
+    result += quoteDescription(field.description);
+    result += SINGLE_NEWLINE;
   }
   result += `${INDENT}${field.name}`;
   if (
@@ -276,4 +277,9 @@ function sortAlphaExcept<T>(
     }
     return first.indexOf(a) - first.indexOf(b);
   };
+}
+
+function quoteDescription(description: string): string {
+  const quotes = /(\r\n|\r|\n)/.test(description) ? '"""' : '"';
+  return `${quotes}${description}${quotes}`;
 }
