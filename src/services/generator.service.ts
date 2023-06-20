@@ -143,7 +143,7 @@ export class GeneratorService {
       ],
       config: {
         //TODO: Get rawRequest settings from config
-        rawRequest: false
+        rawRequest: true
       }
     };
 
