@@ -2,7 +2,15 @@ import { PathLike } from 'fs';
 import { autoInjectable, singleton } from 'tsyringe';
 
 import { generate } from '@graphql-codegen/cli';
-import { appendFile, lstat, readdir, rm, stat, writeFile } from 'fs/promises';
+import {
+  appendFile,
+  lstat,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile
+} from 'fs/promises';
 import {
   ERROR,
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
@@ -82,6 +90,9 @@ export class GeneratorService {
       },
       true
     );
+
+    // Append schema variable
+    await this.appendSchemaVariable();
   }
 
   /**
@@ -164,6 +175,9 @@ export class GeneratorService {
       PATH_SDX_GENERATE_SDK,
       `\nexport const getSolidClient = <C, E>(requester: Requester<C, E>): Sdk => getSdk<C, E>(requester);`
     );
+
+    // Append schema variable
+    await this.appendSchemaVariable();
   }
 
   async notify(event: ChangeEvent): Promise<void> {
@@ -191,6 +205,17 @@ export class GeneratorService {
     } catch {
       /* Ignore */
     }
+  }
+
+  /**
+   * Append the schema variable to the generated SDK.
+   */
+  private async appendSchemaVariable(): Promise<void> {
+    const schema = await readFile(PATH_SDX_GENERATE_GRAPHQL_SCHEMA);
+    await appendFile(
+      PATH_SDX_GENERATE_SDK,
+      `\nexport const GRAPHQL_SCHEMA = \`${schema.toString()}\`;`
+    );
   }
 }
 
