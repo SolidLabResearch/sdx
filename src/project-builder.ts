@@ -1,15 +1,24 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, write, writeFileSync } from 'fs';
 import prompts, { PromptObject } from 'prompts';
 import {
+  LIB_DEPENDENCIES,
+  LIB_DEV_DEPENDENCIES,
+  PATH_GRAPHQL_QUERIES,
+  PATH_GRAPHQL_QUERIES_FOLDER,
+  PATH_GRAPHQL_RC,
   PATH_PACKAGE_JSON,
   PATH_SDX_CONFIG,
   PATH_SOLID_MANIFEST
 } from './constants.js';
-import { DEFAULT_SDX_CONFIG, DEFAULT_SOLID_MANIFEST } from './templates.js';
+import {
+  DEFAULT_SDX_CONFIG,
+  DEFAULT_SOLID_MANIFEST,
+  GRAPHQL_RC
+} from './templates.js';
 import { InitOptions } from './types.js';
-import { SOLID_PURPLE, SOLID_WARN } from './util.js';
+import { SOLID_PURPLE, SOLID_WARN, ensureDir } from './util.js';
 import { cwd } from 'process';
 import path from 'path';
 
@@ -57,6 +66,12 @@ export class ProjectBuilder {
     if (!options.noLibs) {
       this.installLibraries(name);
     }
+
+    // Write empty graphql queries file
+    this.createGraphQLQueriesFile(name);
+
+    // Write .graphqlrc
+    this.initGraphQLRC(name);
 
     this.logPurple('Successfully set up workspace!');
     chalk.reset();
@@ -161,29 +176,43 @@ export class ProjectBuilder {
   }
 
   private installLibraries(folder?: string) {
-    if (folder) {
-      execSync(`cd ${folder}`);
-    }
-    try {
-      this.logPurple('Installing @solidlab/sdx (local CLI tool)...');
-      execSync(
-        folder
-          ? `cd ${folder} && npm i -D @solidlab/sdx`
-          : 'npm i -D @solidlab/sdx'
-      );
-    } catch {
-      throw new Error(`Error while installing @solidlab/sdx!`);
-    }
-    try {
-      this.logPurple('Installing @solidlab/sdx-sdk (SDK library)...');
-      execSync(
-        folder
-          ? `cd ${folder} && npm i -S @solidlab/sdx-sdk`
-          : 'npm i -S @solidlab/sdx-sdk'
-      );
-    } catch {
-      throw new Error(`Error while installing @solidlab/sdx-sdk!`);
-    }
+    LIB_DEV_DEPENDENCIES.forEach((lib) => {
+      try {
+        this.logPurple(`Installing ${lib}...`);
+        execSync(
+          folder ? `cd ${folder} && npm i -D ${lib}` : `npm i -D ${lib}`
+        );
+      } catch {
+        throw new Error(`Error while installing ${lib}!`);
+      }
+    });
+
+    LIB_DEPENDENCIES.forEach((lib) => {
+      try {
+        this.logPurple(`Installing ${lib}...`);
+        execSync(
+          folder ? `cd ${folder} && npm i -S ${lib}` : `npm i -S ${lib}`
+        );
+      } catch {
+        throw new Error(`Error while installing ${lib}!`);
+      }
+    });
+  }
+
+  private async createGraphQLQueriesFile(folder?: string) {
+    const path = folder
+      ? `${folder}/${PATH_GRAPHQL_QUERIES}`
+      : PATH_GRAPHQL_QUERIES;
+    const folderPath = folder
+      ? `${folder}/${PATH_GRAPHQL_QUERIES_FOLDER}`
+      : PATH_GRAPHQL_QUERIES_FOLDER;
+    await ensureDir(folderPath);
+    writeFileSync(path, '', { flag: 'w' });
+  }
+
+  private initGraphQLRC(folder?: string) {
+    const path = folder ? `${folder}/${PATH_GRAPHQL_RC}` : PATH_GRAPHQL_RC;
+    writeFileSync(path, GRAPHQL_RC, { flag: 'w' });
   }
 
   private logPurple(text: string): void {

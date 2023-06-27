@@ -10,7 +10,6 @@ import {
 } from 'fs';
 import { autoInjectable, singleton } from 'tsyringe';
 import {
-  DEMO_POD_SCHEMAS_URI,
   PATH_SDX_GENERATE_SHACL_FOLDER,
   PATH_SOLID_MANIFEST
 } from '../constants.js';

@@ -1,4 +1,4 @@
-import { PathLike } from 'fs';
+import { PathLike, readFileSync } from 'fs';
 import { autoInjectable, singleton } from 'tsyringe';
 
 import { generate } from '@graphql-codegen/cli';
@@ -16,7 +16,8 @@ import {
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
   PATH_SDX_GENERATE_SDK,
   PATH_SDX_GENERATE_SHACL_FOLDER,
-  PATH_SRC_GRAPHQL_QUERIES
+  PATH_GRAPHQL_QUERIES,
+  PATH_GRAPHQL_QUERIES_FOLDER
 } from '../constants.js';
 import { ShaclParserService } from './shacl-parser.service.js';
 
@@ -117,22 +118,23 @@ export class GeneratorService {
     // Check for queries directory
     let statQuery;
     try {
-      statQuery = await stat(PATH_SRC_GRAPHQL_QUERIES);
+      statQuery = await stat(PATH_GRAPHQL_QUERIES_FOLDER);
     } catch (err: any) {
       statQuery = null;
     }
     const documents =
       (statQuery &&
         statQuery.isDirectory() &&
-        (await readdir(PATH_SRC_GRAPHQL_QUERIES)).map(
-          (fileName) => `${PATH_SRC_GRAPHQL_QUERIES}/${fileName}`
-        )) ||
+        (await readdir(PATH_GRAPHQL_QUERIES_FOLDER))
+          .map((fileName) => `${PATH_GRAPHQL_QUERIES_FOLDER}/${fileName}`)
+          .filter((path) => this.fileIsNotEmpty(path))) ||
       [];
+
     if (documents.length === 0) {
       // Warn no queries
       console.log(
         chalk.hex(SOLID_WARN)(
-          `Warning: No GraphQL queries found! (create *.graphql files inside the '${PATH_SRC_GRAPHQL_QUERIES}' folder to also generate an SDK Client)`
+          `Warning: No GraphQL queries found! (create *.graphql files inside the '${PATH_GRAPHQL_QUERIES_FOLDER}' folder to also generate an SDK Client)`
         )
       );
       // Generate only typings
@@ -141,6 +143,11 @@ export class GeneratorService {
       await this.generateSdk(schemaPath, documents);
     }
   }
+
+  private fileIsNotEmpty = (fileName: string): boolean => {
+    const file = readFileSync(fileName);
+    return file.toString().trim().length > 0;
+  };
 
   async generateSdk(
     schemaPath: PathLike = PATH_SDX_GENERATE_GRAPHQL_SCHEMA,

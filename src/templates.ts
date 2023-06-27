@@ -15,3 +15,7 @@ export const DEFAULT_SOLID_MANIFEST: SolidManifest = {
   license: 'ISC',
   typePackages: []
 };
+
+export const GRAPHQL_RC = `# .graphqlrc.yml
+schema: src/.sdx-gen/graphql/schema.graphqls
+documents: src/gql/**/*.graphql`;
