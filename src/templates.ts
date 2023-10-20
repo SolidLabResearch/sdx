@@ -2,7 +2,7 @@ import { SdxConfig, SolidManifest } from './types.js';
 
 export const DEFAULT_SDX_CONFIG: SdxConfig = {
   formatVersion: '1.0.0',
-  repositories: [],
+  catalogs: [{ name: 'SolidLab Catalog', uri: 'https://catalog.solidlab.be' }],
   options: {
     autoGenerate: true
   }
@@ -13,7 +13,7 @@ export const DEFAULT_SOLID_MANIFEST: SolidManifest = {
   name: 'my-solid-app',
   author: '',
   license: 'ISC',
-  typePackages: []
+  shapePackages: []
 };
 
 export const GRAPHQL_RC = `# .graphqlrc.yml

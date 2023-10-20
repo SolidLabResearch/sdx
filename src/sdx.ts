@@ -47,79 +47,79 @@ program
 // search
 program
   .command('search')
-  .description('Search for a type package via the SolidLab Catalog API.')
+  .description('Search for a shape package via the SolidLab Catalog API.')
   .argument('<query>', 'query to search for')
   .action((query) => search.search(query));
 
 // install
 const installCommand = program
   .command('install')
-  .description('Install an object like a type package.');
+  .description('Install an object like a shape package.');
 
 // install package
 installCommand
   .command('package')
   .description(
-    'Install a type package using an IRI or an index (from search results).'
+    'Install a shape package using an IRI or an index (from search results).'
   )
   .argument(
     '<IRI|index>',
-    'Full IRI of type package or index (from search results)'
+    'Full IRI of shape package or index (from search results)'
   )
-  .action((iriOrIndex) => project.installTypePackage(iriOrIndex));
+  .action((iriOrIndex) => project.installShapePackage(iriOrIndex));
 
 // uninstall
 const uninstallCommand = program
   .command('uninstall')
-  .description('Uninstall an object like a type package.');
+  .description('Uninstall an object like a shape package.');
 
 // uninstall package
 uninstallCommand
   .command('package')
   .description(
-    'Uninstall a type package using an IRI or an index (from list results).'
+    'Uninstall a shape package using an IRI or an index (from list results).'
   )
   .argument(
     '<IRI|index>',
-    'Full IRI of type package or index  (from list results)'
+    'Full IRI of shape package or index  (from list results)'
   )
-  .action((iriOrIndex) => project.unInstallTypePackage(iriOrIndex));
+  .action((iriOrIndex) => project.unInstallShapePackage(iriOrIndex));
 
-// type
-const typePackageCommand = program
+// shape
+const shapePackageCommand = program
   .command('package')
   .alias('packages')
-  .description('Execute standard operations on type packages.');
+  .description('Execute standard operations on shape packages.');
 
-// type list
-typePackageCommand
+// shape list
+shapePackageCommand
   .command('list')
-  .description('List all installed type packages.')
-  .action(() => project.listTypePackages());
+  .description('List all installed shape packages.')
+  .action(() => project.listShapePackages());
 
-// type install
-typePackageCommand
+// shape install
+shapePackageCommand
   .command('install')
   .argument(
     '<IRI|index>',
-    'Full IRI of type package or index (from search results)'
+    'Full IRI of shape package or index (from search results)'
   )
   .description(
-    'Install a type package using an IRI or an index (from search results).'
+    'Install a shape package using an IRI or an index (from search results).'
   )
-  .action((iriOrIndex) => project.installTypePackage(iriOrIndex));
+  .action((iriOrIndex) => project.installShapePackage(iriOrIndex));
 
-// type uninstall
-typePackageCommand
+// shape uninstall
+shapePackageCommand
   .command('uninstall')
   .description(
-    'Uninstall a type package using an IRI or an index (from list results).'
+    'Uninstall a shape package using an IRI or an index (from list results).'
   )
   .argument(
     '<IRI|index>',
-    'Full IRI of type package or index  (from list results)'
+    'Full IRI of shape package or index  (from list results)'
   )
-  .action((iriOrIndex) => project.unInstallTypePackage(iriOrIndex));
+  .action((iriOrIndex) => project.unInstallShapePackage(iriOrIndex));
 
 // list
 const listCommand = program.command('list').description('list objects');
@@ -128,28 +128,28 @@ const listCommand = program.command('list').description('list objects');
 listCommand
   .command('packages')
   .alias('package')
-  .description('List all installed type packages.')
-  .action(() => project.listTypePackages());
+  .description('List all installed shape packages.')
+  .action(() => project.listShapePackages());
 
 // generate
 const generateCommand = program
   .command('generate')
   .alias('g')
-  .description('Generate code from the installed type packages.');
+  .description('Generate code from the installed shape packages.');
 
 // generate schema
 generateCommand
   .command('schema')
   .description(
-    'Generate or update a GraphQL schema from the installed type packages.'
+    'Generate or update a GraphQL schema from the installed shape packages.'
   )
   .action(async () => await generator.generateGraphqlSchema());
 
-// generate types
+// generate shapes
 generateCommand
-  .command('types')
+  .command('shapes')
   .alias('typings')
-  .description('Generate or update typings for the installed type packages.')
+  .description('Generate or update typings for the installed shape packages.')
   .action(async () => await generator.generateTypings());
 
 // generate sdk

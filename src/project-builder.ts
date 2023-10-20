@@ -1,6 +1,8 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
-import { existsSync, mkdirSync, readFileSync, write, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import path from 'path';
+import { cwd } from 'process';
 import prompts, { PromptObject } from 'prompts';
 import {
   LIB_DEPENDENCIES,
@@ -19,8 +21,6 @@ import {
 } from './templates.js';
 import { InitOptions } from './types.js';
 import { SOLID_PURPLE, SOLID_WARN, ensureDir } from './util.js';
-import { cwd } from 'process';
-import path from 'path';
 
 export class ProjectBuilder {
   /**

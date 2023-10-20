@@ -14,7 +14,7 @@ import {
   PATH_SOLID_MANIFEST
 } from '../constants.js';
 import { ProjectBuilder } from '../project-builder.js';
-import { InitOptions, SolidManifest, SolidTypePackage } from '../types.js';
+import { InitOptions, ShapePackage, SolidManifest } from '../types.js';
 import { noResults, SOLID_PURPLE } from '../util.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
@@ -42,11 +42,11 @@ export class ProjectService {
     new ProjectBuilder().initProject(name, options);
   }
 
-  listTypePackages(): any {
+  listShapePackages(): any {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const results = Object.values(manifest.typePackages).map(
+    const results = Object.values(manifest.shapePackages).map(
       ({ name, id }) => ({
         name,
         id
@@ -56,38 +56,38 @@ export class ProjectService {
       noResults();
       return;
     }
-    this.cache?.storeListToCache<Partial<SolidTypePackage>>(results);
+    this.cache?.storeListToCache<Partial<ShapePackage>>(results);
     console.table(results);
   }
 
-  async installTypePackage(iriOrIdx: string): Promise<void> {
+  async installShapePackage(iriOrIdx: string): Promise<void> {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
-      iri = this.cache!.readListFromCache<SolidTypePackage>()[idx].id!;
+      iri = this.cache!.readListFromCache<ShapePackage>()[idx].id!;
     }
     if (!iri) {
-      console.error('A type with that index cannot be found!');
+      console.error('A shape package with that index cannot be found!');
     }
 
-    console.log(chalk.hex(SOLID_PURPLE)(`Installing type package ${iri}`));
+    console.log(chalk.hex(SOLID_PURPLE)(`Installing shape package ${iri}`));
 
     const id = encodeURIComponent(iri);
-    const [typePackage, scheme] = await Promise.all([
-      this.backend!.getTypePackage(id),
-      this.backend!.getTypePackageShacl(id)
+    const [shapePackage, scheme] = await Promise.all([
+      this.backend!.getShapePackage(id),
+      this.backend!.getShapePackageShacl(id)
     ]);
 
-    this.saveSolidTypeToManifest(typePackage);
+    this.saveShapeToManifest(shapePackage);
     this.storeSchemeToDisk(iri, scheme);
     this.generator!.notify({ shaclChanged: true });
   }
 
-  unInstallTypePackage(iriOrIdx: string): void {
+  unInstallShapePackage(iriOrIdx: string): void {
     let iri = iriOrIdx;
     const idx = parseInt(iriOrIdx);
     if (!isNaN(idx)) {
-      iri = this.cache!.readListFromCache<SolidTypePackage>()[idx].id!;
+      iri = this.cache!.readListFromCache<ShapePackage>()[idx].id!;
     }
     if (!iri) {
       console.error('A type with that index cannot be found!');
@@ -156,17 +156,17 @@ export class ProjectService {
     return sha.digest('hex');
   }
 
-  private saveSolidTypeToManifest(typePackage: SolidTypePackage): void {
+  private saveShapeToManifest(shapePackage: ShapePackage): void {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const idx = manifest.typePackages.findIndex(
-      (tt) => tt.id === typePackage.id
+    const idx = manifest.shapePackages.findIndex(
+      (tt) => tt.id === shapePackage.id
     );
     if (idx > -1) {
-      manifest.typePackages[idx] = typePackage;
+      manifest.shapePackages[idx] = shapePackage;
     } else {
-      manifest.typePackages.push(typePackage);
+      manifest.shapePackages.push(shapePackage);
     }
     writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), {
       flag: 'w'
@@ -177,9 +177,9 @@ export class ProjectService {
     const manifest: SolidManifest = JSON.parse(
       readFileSync(PATH_SOLID_MANIFEST).toString()
     );
-    const idx = manifest.typePackages.findIndex((tt) => tt.id === id);
+    const idx = manifest.shapePackages.findIndex((tt) => tt.id === id);
     if (idx > -1) {
-      manifest.typePackages.splice(idx, 1);
+      manifest.shapePackages.splice(idx, 1);
       writeFileSync(PATH_SOLID_MANIFEST, JSON.stringify(manifest, null, 4), {
         flag: 'w'
       });

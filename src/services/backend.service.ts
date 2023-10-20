@@ -1,15 +1,18 @@
 import axios, { AxiosResponse } from 'axios';
+import chalk from 'chalk';
 import { autoInjectable } from 'tsyringe';
 import {
   Page,
   PageArgs,
-  SearchTypeOutput,
-  SolidType,
-  SolidTypePackage
+  SearchShapeOutput,
+  Shape,
+  ShapePackage,
+  SolidCatalog
 } from '../types.js';
+import { SOLID_WARN } from '../util.js';
+import { ConfigService } from './config.service.js';
 
 const API_ROOT = '/api';
-const apiHost = 'https://catalog.solid.discover.ilabt.imec.be';
 
 /**
  * Creates a URL with the {@link API_ROOT}, path, and args appended as querystring.
@@ -18,6 +21,15 @@ const apiHost = 'https://catalog.solid.discover.ilabt.imec.be';
  * @returns
  */
 function url(path: string, args: PageArgs = {}): string {
+  const { catalogs } = config.getSdxConfigSync();
+  if (catalogs.length > 1) {
+    console.log(
+      chalk.hex(SOLID_WARN)(
+        `Multiple catalogs found! This is not yet supported: using the first one (${catalogs[0]?.name})!`
+      )
+    );
+  }
+  const apiHost = catalogs[0]?.uri ?? 'https://catalog.solidlab.be';
   const query = Object.entries(args)
     .map(
       (entry) =>
@@ -28,6 +40,8 @@ function url(path: string, args: PageArgs = {}): string {
   return query.length === 0 ? url : `${url}?${query}`;
 }
 
+const config = new ConfigService();
+
 @autoInjectable()
 export class BackendService {
   private http = axios;
@@ -37,29 +51,31 @@ export class BackendService {
    *
    * @param query - Term to search for
    */
-  async searchPackage(query: string): Promise<SolidTypePackage[]> {
+  async searchPackage(query: string): Promise<ShapePackage[]> {
     return safe(
-      this.http.post<SolidTypePackage[]>(url('search/package'), {
+      this.http.post<ShapePackage[]>(url('search/package'), {
         keyword: query
       })
     );
   }
 
   /**
-   * List all types.
+   * List all shapes.
    */
-  async listTypes(args?: PageArgs): Promise<Page<SolidType>> {
-    return safe(this.http.get<Page<SolidType>>(url('types', args)));
+  async listShapes(args?: PageArgs): Promise<Page<Shape>> {
+    return safe(this.http.get<Page<Shape>>(url('shapes', args)));
   }
 
   /**
-   * Search for a type.
+   * Search for a shape.
    *
    * @param query - Term to search for
    */
-  async searchType(query: string): Promise<SearchTypeOutput[]> {
+  async searchShape(query: string): Promise<SearchShapeOutput[]> {
     return safe(
-      this.http.post<SearchTypeOutput[]>(url('search/type'), { keyword: query })
+      this.http.post<SearchShapeOutput[]>(url('search/shape'), {
+        keyword: query
+      })
     );
   }
 
@@ -67,8 +83,8 @@ export class BackendService {
    * Get a type
    * @param id - Id of the type.
    */
-  async getType(id: string): Promise<SolidType> {
-    return safe(this.http.get<SolidType>(url(`types/${id}`)));
+  async getShape(id: string): Promise<Shape> {
+    return safe(this.http.get<Shape>(url(`shapes/${id}`)));
   }
 
   /**
@@ -96,14 +112,14 @@ export class BackendService {
    * Get a type package
    * @param id - Id of the type.
    */
-  async getTypePackage(id: string): Promise<SolidTypePackage> {
-    return safe(this.http.get<SolidTypePackage>(url(`packages/${id}`)));
+  async getShapePackage(id: string): Promise<ShapePackage> {
+    return safe(this.http.get<ShapePackage>(url(`packages/${id}`)));
   }
 
   /**
    * Dowload the SHACL of a type package
    */
-  async getTypePackageShacl(id: string): Promise<string> {
+  async getShapePackageShacl(id: string): Promise<string> {
     console.log('downloading from api:', url(`packages/${id}/download)`));
     return safe(
       this.http.get(url(`packages/${id}/download`), {

@@ -6,7 +6,7 @@ export interface InitOptions {
 
 export interface SdxConfig {
   formatVersion: string;
-  repositories: SdxRepository[];
+  catalogs: SolidCatalog[];
   options: SdxConfigOptions;
 }
 
@@ -24,40 +24,41 @@ export interface SolidManifest {
   name: string;
   author: string;
   license: string;
-  typePackages: SolidTypePackage[];
+  shapePackages: ShapePackage[];
 }
 
-export interface SdxRepository {
+export interface SolidCatalog {
   name: string;
   uri: string;
 }
-
-export interface SolidTypePackage extends Dated {
+export interface ShapePackage extends Dated {
   id: string;
   maintainers: string[];
   name?: string;
   description?: string;
   license?: string;
-  author?: string;
+  contributor?: string;
   homepage?: string;
   repository?: string;
   downloads?: number;
+  prefixes?: Record<string, string>;
 }
 
-export interface SolidType extends Dated {
+export interface Shape extends Dated {
   id: string;
   packageIdentifier: string;
   name?: string;
   description?: string;
-  properties: SolidTypeProperty[];
+  properties: ShapeProperty[];
 }
 
-export interface SolidTypeProperty {
+export interface ShapeProperty {
   class: string | null;
   name: string;
   path: string | null;
   description: string | null;
   datatype: string | null;
+  nodeKind: string | null;
   minCount: number | null;
   maxCount: number | null;
 }
@@ -94,11 +95,11 @@ export interface PageArgs {
 export type FilterArgs = Omit<PageArgs, 'cursor'>;
 
 export interface PackageImportReport {
-  typesCreated: string[];
-  typesUpdated: string[];
+  shapesCreated: string[];
+  shapesUpdated: string[];
 }
 
-export interface SearchTypeOutput {
-  typePackage: SolidTypePackage;
-  typeMatches: string[];
+export interface SearchShapeOutput {
+  shapePackage: ShapePackage;
+  shapeMatches: string[];
 }

@@ -25,7 +25,7 @@
     "build:watch": "npm run build -- --watch",
     "build:install": "npm run build:prod && npm i -g",
     "build:version": "node -p \"'export const LIB_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts && tsup --clean=false src/version.ts",
-    "start": "npx sdx",
+    "start": "node dist/sdx.js",
     "test": "jest --config jest.config.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
