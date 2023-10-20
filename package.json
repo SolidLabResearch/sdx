@@ -1,6 +1,6 @@
 {
   "name": "@solidlab/sdx",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Solid Development Experience toolkit",
   "type": "module",
   "main": "./dist/sdx.js",
