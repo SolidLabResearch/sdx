@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- Initial config support for multiple Solid Catalog instances
+
+### Changed
+- Changed backend api calls to match the newly (pre)released SolidLab Catalog at https://catalog.solidlab.be
+- Internal API and Types have been updated to better match the new Solid Catalog APIs.
+
 ## 0.5.0-beta.0 - 2023-10-20
 
 ## 0.4.0 - 2023-06-27
