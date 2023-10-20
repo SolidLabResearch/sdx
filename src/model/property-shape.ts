@@ -15,7 +15,10 @@ export class PropertyShape {
   public maxCount?: number;
   private className?: string;
 
-  constructor(public quads: Quad[], private context: Context) {
+  constructor(
+    public quads: Quad[],
+    private context: Context
+  ) {
     const store = new Store(quads);
     this.name =
       this.parseObject(store, SHACL.name) ??

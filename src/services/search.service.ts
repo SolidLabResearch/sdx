@@ -1,19 +1,15 @@
 import chalk from 'chalk';
-import { readFileSync } from 'fs';
 import { autoInjectable, singleton } from 'tsyringe';
-import { PATH_SDX_CONFIG } from '../constants.js';
-import { SdxConfig, SolidCatalog } from '../types.js';
 import { BackendService } from './backend.service.js';
 import { CacheService } from './cache.service.js';
 
 @singleton()
 @autoInjectable()
 export class SearchService {
-  private repositories: SolidCatalog[];
-
-  constructor(private backend?: BackendService, private cache?: CacheService) {
-    this.repositories = this.fetchRepositories();
-  }
+  constructor(
+    private backend?: BackendService,
+    private cache?: CacheService
+  ) {}
 
   async search(query: string): Promise<void> {
     const results = await this.backend!.searchShape(query);
@@ -29,7 +25,7 @@ export class SearchService {
       );
       // Format output
       const tx = results.map(({ shapeMatches, shapePackage }) => {
-        const { id, name, downloads } = shapePackage;
+        const { name, downloads } = shapePackage;
         let matchingTypes = shapeMatches.slice(0, 3).map(iriToName).join(`, `);
         if (shapeMatches.length > 3) {
           matchingTypes += ', ...';
@@ -45,22 +41,11 @@ export class SearchService {
     }
   }
 
-  private fetchRepositories(): SolidCatalog[] {
-    try {
-      const sdxConfig: SdxConfig = JSON.parse(
-        readFileSync(PATH_SDX_CONFIG).toString()
-      );
-      return sdxConfig.catalogs;
-    } catch {
-      return [];
-    }
-  }
-
   private outputResults(results: any[]): void {
     console.table(results);
     console.log(
       chalk.yellow(
-        `Install a type package using \`sdx install package <index>\``
+        `Install a shape package using \`sdx install package <index>\``
       )
     );
   }

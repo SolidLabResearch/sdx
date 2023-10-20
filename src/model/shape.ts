@@ -14,7 +14,10 @@ export class Shape {
    * @param quads The quads that make up the Shape
    * @param context Any toplevel quads that have a BlankNode subject
    */
-  constructor(public quads: Quad[], context: Context) {
+  constructor(
+    public quads: Quad[],
+    context: Context
+  ) {
     // console.log(quads);
     // console.log(context)
     const store = new Store(quads);

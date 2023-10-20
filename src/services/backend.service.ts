@@ -6,8 +6,7 @@ import {
   PageArgs,
   SearchShapeOutput,
   Shape,
-  ShapePackage,
-  SolidCatalog
+  ShapePackage
 } from '../types.js';
 import { SOLID_WARN } from '../util.js';
 import { ConfigService } from './config.service.js';

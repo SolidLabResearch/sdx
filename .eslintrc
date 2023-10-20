@@ -3,20 +3,20 @@
     "parser": "@typescript-eslint/parser",
     "plugins": [
         "@typescript-eslint",
-        "jest-extended",
-        "prettier"
+        "jest-extended"
     ],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended",
-        "prettier"
+        "plugin:prettier/recommended"
     ],
     "rules": {
         "jest-extended/prefer-to-be-false": "error",
         "jest-extended/prefer-to-be-true": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unused-vars": "warn", 
         "prettier/prettier": "error"
     }
 }

@@ -219,8 +219,8 @@ export class ShaclParserService {
     if (!inputType) {
       let fields = Object.fromEntries(
         Object.entries(type.getFields())
-          .filter(([_, field]) => isOrContainsScalar(field.type))
-          .filter(([_, field]) => !isIdentifier(field))
+          .filter(([, field]) => isOrContainsScalar(field.type))
+          .filter(([, field]) => !isIdentifier(field))
           .map(([name, field]) => [
             cleanseName(name),
             toInputField(field, mutationType)
@@ -290,28 +290,31 @@ export class ShaclParserService {
     }
 
     // Add opreations for other non-scalar fields
-    const extra = Object.values(type.getFields()).reduce((acc, field) => {
-      if (isOrContainsObjectType(field.type)) {
-        const isListLike =
-          isListType(field.type) ||
-          (isNonNullType(field.type) && isListType(field.type.ofType));
-        acc = {
-          ...acc,
-          ...(isListLike
-            ? this.generateMutationObjectTypeFieldsForCollection(
-                field,
-                type,
-                context
-              ) // arrayLike
-            : this.generateMutationObjectTypeFieldsForSingular(
-                field,
-                type,
-                context
-              )) // singular
-        };
-      }
-      return acc;
-    }, {} as ThunkObjMap<GraphQLFieldConfig<any, any>>);
+    const extra = Object.values(type.getFields()).reduce(
+      (acc, field) => {
+        if (isOrContainsObjectType(field.type)) {
+          const isListLike =
+            isListType(field.type) ||
+            (isNonNullType(field.type) && isListType(field.type.ofType));
+          acc = {
+            ...acc,
+            ...(isListLike
+              ? this.generateMutationObjectTypeFieldsForCollection(
+                  field,
+                  type,
+                  context
+                ) // arrayLike
+              : this.generateMutationObjectTypeFieldsForSingular(
+                  field,
+                  type,
+                  context
+                )) // singular
+          };
+        }
+        return acc;
+      },
+      {} as ThunkObjMap<GraphQLFieldConfig<any, any>>
+    );
     return { ...fields, ...extra };
   }
 

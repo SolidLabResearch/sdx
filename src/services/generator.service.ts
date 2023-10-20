@@ -16,13 +16,15 @@ import {
   PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
   PATH_SDX_GENERATE_SDK,
   PATH_SDX_GENERATE_SHACL_FOLDER,
-  PATH_GRAPHQL_QUERIES,
   PATH_GRAPHQL_QUERIES_FOLDER
 } from '../constants.js';
 import { ShaclParserService } from './shacl-parser.service.js';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as typescriptPlugin from '@graphql-codegen/typescript';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as typescriptGenericSdkPlugin from '@graphql-codegen/typescript-generic-sdk';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as typescriptOperationsPlugin from '@graphql-codegen/typescript-operations';
 import chalk from 'chalk';
 import { SOLID_WARN, ensureDir } from '../util.js';
