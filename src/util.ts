@@ -84,11 +84,17 @@ export const toActualType = (
 };
 
 export function parseNameFromUri(uriString: string): string {
-  const uri = new URL(uriString);
-  // If the URI has a fragment, use fragment, otherwise use the last path segment
-  return uri.hash.length > 0
-    ? uri.hash.slice(1)
-    : uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1);
+  try {
+    const uri = new URL(uriString);
+    // If the URI has a fragment, use fragment, otherwise use the last path segment
+    return uri.hash.length > 0
+      ? uri.hash.slice(1)
+      : uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1);
+  } catch (err: any) {
+    return uriString.startsWith('#') || uriString.startsWith('/')
+      ? uriString.slice(1)
+      : uriString;
+  }
 }
 
 export function groupBySubject(quads: Quad[]): Map<Quad_Subject, Quad[]> {
