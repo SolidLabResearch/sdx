@@ -3,7 +3,7 @@ import * as Scalars from 'graphql/type/scalars.js';
 import { DataFactory, NamedNode, Quad, Store } from 'n3';
 import { Context } from './context.js';
 import { parseNameFromUri } from '../util.js';
-import { RDFS, SHACL, XSD } from './vocab.js';
+import { RDF, RDFS, SHACL, XSD } from './vocab.js';
 const { namedNode } = DataFactory;
 
 export class PropertyShape {
@@ -66,6 +66,7 @@ export class PropertyShape {
       case XSD.float.value:
         return Scalars.GraphQLFloat;
 
+      case RDF.XMLLiteral.value:
       case RDFS.langString.value:
       case XSD.string.value:
         return Scalars.GraphQLString;
