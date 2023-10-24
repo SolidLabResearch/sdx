@@ -5,7 +5,7 @@ export const DEFAULT_SDX_CONFIG: SdxConfig = {
   catalogs: [{ name: 'SolidLab Catalog', uri: 'https://catalog.solidlab.be' }],
   options: {
     autoGenerate: true,
-    resultEnvelope: false
+    rawRequest: false
   }
 };
 

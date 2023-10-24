@@ -18,8 +18,8 @@ export interface SdxConfigOptions {
     id: string;
     secret: string;
   };
-  /** Enclose the results in an envelope container data and error keys */
-  resultEnvelope: boolean;
+  /** The requests are raw, meaning they respond with data and error keys (instead of just value of the data key) */
+  rawRequest: boolean;
 }
 
 export interface SolidManifest {

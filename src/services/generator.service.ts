@@ -163,7 +163,7 @@ export class GeneratorService {
         'typescript-generic-sdk'
       ],
       config: {
-        rawRequest: sdxConfig.options.resultEnvelope
+        rawRequest: sdxConfig.options.rawRequest
       }
     };
 
