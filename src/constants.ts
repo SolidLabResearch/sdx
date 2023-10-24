@@ -19,5 +19,5 @@ export const enum ERROR {
   NO_SHACL_SCHEMAS = `No shacl schema's`
 }
 
-export const LIB_DEPENDENCIES = ['@solidlab/sdx-sdk'];
-export const LIB_DEV_DEPENDENCIES = ['@solidlab/sdx'];
+export const LIB_DEPENDENCIES = ['@solidlab/sdx-sdk@1.0.0-beta.18'];
+export const LIB_DEV_DEPENDENCIES = ['@solidlab/sdx@6.0.4'];
