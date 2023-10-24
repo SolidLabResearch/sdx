@@ -4,7 +4,8 @@ export const DEFAULT_SDX_CONFIG: SdxConfig = {
   formatVersion: '1.0.0',
   catalogs: [{ name: 'SolidLab Catalog', uri: 'https://catalog.solidlab.be' }],
   options: {
-    autoGenerate: true
+    autoGenerate: true,
+    resultEnvelope: false
   }
 };
 

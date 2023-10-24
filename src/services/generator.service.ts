@@ -155,6 +155,7 @@ export class GeneratorService {
     schemaPath: PathLike = PATH_SDX_GENERATE_GRAPHQL_SCHEMA,
     documents: string[]
   ): Promise<void> {
+    const sdxConfig = await this.config!.getSdxConfig();
     const configuration = {
       plugins: [
         'typescript',
@@ -162,8 +163,7 @@ export class GeneratorService {
         'typescript-generic-sdk'
       ],
       config: {
-        //TODO: Get rawRequest settings from config
-        rawRequest: true
+        rawRequest: sdxConfig.options.resultEnvelope
       }
     };
 

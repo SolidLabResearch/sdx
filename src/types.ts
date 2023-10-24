@@ -13,10 +13,13 @@ export interface SdxConfig {
 export interface SdxConfigOptions {
   /** Trigger autogeneration of GraphQL schema and SDK on (un)installing shacl shapes etc.*/
   autoGenerate: boolean;
+  /** Client credentials for authenticating the client */
   clientCredentials?: {
     id: string;
     secret: string;
   };
+  /** Enclose the results in an envelope container data and error keys */
+  resultEnvelope: boolean;
 }
 
 export interface SolidManifest {
