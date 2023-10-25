@@ -20,4 +20,4 @@ export const enum ERROR {
 }
 
 export const LIB_DEPENDENCIES = ['@solidlab/sdx-sdk@1.0.0-beta.18'];
-export const LIB_DEV_DEPENDENCIES = ['@solidlab/sdx@0.7.2'];
+export const LIB_DEV_DEPENDENCIES = ['@types/n3', '@solidlab/sdx@latest'];
